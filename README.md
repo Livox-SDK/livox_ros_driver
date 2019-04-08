@@ -2,7 +2,7 @@
 
 ### Run livox ros driver
 
-livox_ros_driver is a new ros package under the Livox-SDK/Livox-SDK-ROS/src directory, which is designed to gradually become the standard driver package for livox devices in the ros environment. The driver offers users a wealth of options:
+livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment. The driver offers users a wealth of options:
 
 1. Publish pointcloud2 format point cloud and automatically load rviz.
 
