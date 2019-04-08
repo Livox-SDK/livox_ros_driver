@@ -1,5 +1,6 @@
 # Livox costom pointcloud format.
 
+uint32 offset_time      # offset time relative to the base time
 float32 x               # X axis, unit:m
 float32 y               # Y axis, unit:m
 float32 z               # Z axis, unit:m

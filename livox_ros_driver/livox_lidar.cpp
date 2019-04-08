@@ -49,6 +49,7 @@
 
 const uint64_t kPacketTimeGap      = 1000000;     // 1ms = 1000000ns
 const uint64_t kMaxPacketTimeGap   = 1700000;     // the threshold of packet continuous
+const uint64_t kDeviceDisconnectThreshold = 1000000000;     // the threshold of device disconect
 const uint64_t kNsPerSecond        = 1000000000;  // 1s  = 1000000000ns
 const uint32_t kPublishIntervalMs  = 50;         // unit:ms
 
@@ -154,12 +155,20 @@ void InitStoragePacketPool(void) {
   }
 }
 
-uint32_t QueuePop(StoragePacketQueue* queue, StoragePacket* storage_packet) {
+static void QueueProPop(StoragePacketQueue* queue, StoragePacket* storage_packet) {
   uint32_t mask = queue->mask;
   uint32_t rd_idx = queue->rd_idx & mask;
 
   memcpy(storage_packet, queue->storage_packet[rd_idx], sizeof(StoragePacket));
+}
+
+static void QueuePopUpdate(StoragePacketQueue* queue) {
   queue->rd_idx++;
+}
+
+uint32_t QueuePop(StoragePacketQueue* queue, StoragePacket* storage_packet) {
+  QueueProPop(queue, storage_packet);
+  QueuePopUpdate(queue);
 
   return 1;
 }
@@ -231,6 +240,15 @@ static uint64_t GetStoragePacketTimestamp(StoragePacket* packet) {
   }
 }
 
+static uint32_t GetPointInterval(uint32_t device_type) {
+  if ((kDeviceTypeLidarTele == device_type) || \
+      (kDeviceTypeLidarHorizon == device_type)) {
+    return 4167; // 4167 ns
+  } else {
+    return 10000; // ns
+  }
+}
+
 /* for pointcloud convert process */
 static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_num, \
                                    uint8_t handle) {
@@ -246,7 +264,7 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
 
   StoragePacket storage_packet;
   while (published_packet <  packet_num) {
-    QueuePop(queue, &storage_packet);
+    QueueProPop(queue, &storage_packet);
     LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
     LivoxRawPoint* raw_points = reinterpret_cast<LivoxRawPoint *>(raw_packet->data);
 
@@ -273,6 +291,7 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
       cloud->points.push_back(point);
     }
 
+    QueuePopUpdate(queue);
     last_timestamp = timestamp;
     ++published_packet;
   }
@@ -289,6 +308,8 @@ static uint32_t PublishCustomPointcloud(StoragePacketQueue* queue, uint32_t pack
   uint64_t timestamp = 0;
   uint64_t last_timestamp = 0;
   uint32_t published_packet = 0;
+  uint32_t point_interval = GetPointInterval(lidars[handle].info.type);
+  uint32_t packet_offset_time = 0; // ns
 
   /* init livox custom msg */
   livox_ros_driver::CustomMsg livox_msg;
@@ -298,30 +319,33 @@ static uint32_t PublishCustomPointcloud(StoragePacketQueue* queue, uint32_t pack
   ++msg_seq;
   livox_msg.header.stamp = ros::Time::now();
   livox_msg.timebase = 0;
-  livox_msg.timestep = 10000; // 10us = 10^4ns;
   livox_msg.point_num = 0;
   livox_msg.lidar_id  = handle;
 
   StoragePacket storage_packet;
   while (published_packet <  packet_num) {
-    QueuePop(queue, &storage_packet);
+    QueueProPop(queue, &storage_packet);
     LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
     LivoxRawPoint* raw_points = reinterpret_cast<LivoxRawPoint *>(raw_packet->data);
 
     timestamp = GetStoragePacketTimestamp(&storage_packet);
     if (published_packet && \
-        ((timestamp - last_timestamp) > kMaxPacketTimeGap)) {
+        ((timestamp - last_timestamp) > kDeviceDisconnectThreshold)) {
       ROS_INFO("packet loss : %ld", timestamp);
       break;
     }
     if (!livox_msg.timebase) {
       livox_msg.timebase = timestamp; // to us
-      ROS_DEBUG("[%d]:%ld", handle, livox_msg.timebase);
-    }
+      packet_offset_time = 0;         // first packet
+      ROS_DEBUG("[%d]:%ld %d", handle, livox_msg.timebase, point_interval);
+    } else {
+      packet_offset_time = (uint32_t)(timestamp - livox_msg.timebase);
+    }  
     livox_msg.point_num += storage_packet.point_num;
 
     for (uint32_t i = 0; i < storage_packet.point_num; i++) {
       livox_ros_driver::CustomPoint point;
+      point.offset_time = packet_offset_time + i*point_interval;
       point.x = raw_points->x/1000.0f;
       point.y = raw_points->y/1000.0f;
       point.z = raw_points->z/1000.0f;
@@ -331,6 +355,7 @@ static uint32_t PublishCustomPointcloud(StoragePacketQueue* queue, uint32_t pack
       livox_msg.points.push_back(point);
     }
 
+    QueuePopUpdate(queue);
     last_timestamp = timestamp;
     ++published_packet;
   }
