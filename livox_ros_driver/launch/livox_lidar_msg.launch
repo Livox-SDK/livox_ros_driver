@@ -1,0 +1,13 @@
+<launch>
+	
+	<arg name="bd_list" default="100000000000000"/>
+    <param name="livox_msg_type" value="1"/>
+
+    <node name="livox_lidar_publisher" pkg="livox_ros_driver" 
+	      type="livox_lidar_node" required="true"
+	      output="screen" args="$(arg bd_list)"/>
+    <!--
+	<node name="rviz" pkg="rviz" type="rviz" respawn="true"
+	      args="-d $(find livox_ros_driver)/config/display_lidar_points.rviz"/>
+    -->
+</launch>

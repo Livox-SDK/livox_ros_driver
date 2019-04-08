@@ -1,0 +1,9 @@
+
+# ignore dir
+build/
+devel/
+.catkin_workspace
+#whitelist
+
+
+
