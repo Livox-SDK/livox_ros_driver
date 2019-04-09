@@ -2,53 +2,32 @@
 
 ### Run livox ros driver
 
-livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment. The driver offers users a wealth of options:
+livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment. The driver offers users a wealth of options when using different launch file. There is *bd_list* arg in each launch file. All Livox LiDAR units in your LAN will be connected automatically in default.
+e.g.
 
-1. Publish pointcloud2 format point cloud and automatically load rviz.
+```
+roslaunch livox_ros_driver livox_lidar_rviz.launch
+```
 
-for example:
+If you want to connect to the specific LiDAR uint(s) only, please add the broadcast code into command line. 
+e.g.
 
 ```
 roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="broadcast_code1&broadcast_code2&broadcast_code3"
 ```
 
-or
+Features of *.launch* files are listed as below:
 
-```
-roslaunch livox_ros_driver livox_hub_rviz.launch bd_list:="hub_broadcast_code" 
-```
+| launch file               | features                                                     |
+| ------------------------- | ------------------------------------------------------------ |
+| *livox_lidar_rviz.launch* | Connect to Livox LiDAR units<br/>Publish pointcloud2 format point cloud<br/>Automatically load rviz |
+| livox_hub_rviz.launch     | Connect to Livox Hub units<br/>Publish pointcloud2 format point cloud<br />Automatically load rviz |
+| livox_lidar.launch        | Connect to Livox LiDAR units<br />Publish pointcloud2 format point cloud |
+| livox_hub.launch          | Connect to Livox Hub units<br />Publish pointcloud2 format point cloud |
+| livox_lidar_msg.launch    | Connect to Livox LiDAR units<br />Publish livox custom format point cloud |
+| livox_hub_msg.launch      | Connect to Livox Hub units<br />Publish livox custom format point cloud |
 
-2. Publish pointcloud2 format point cloud only.
-
-for example:
-
-```
-roslaunch livox_ros_driver livox_lidar.launch bd_list:="broadcast_code1&broadcast_code2&broadcast_code3"
-```
-
-or
-
-```
-roslaunch livox_ros_driver livox_hub.launch bd_list:="hub_broadcast_code"
-```
-
-
-
-3. Publish livox custom format point cloud.
-
-for example:
-
-```
-roslaunch livox_ros_driver livox_lidar_msg.launch bd_list:="broadcast_code1&broadcast_code2&broadcast_code3"
-```
-
-or
-
-```
-roslaunch livox_ros_driver livox_hub_msg.launch bd_list:="hub_broadcast_code"
-```
-
-livox custom msg format:
+Livox custom msg format：
 
 ```
 Header header             # ROS standard message header
