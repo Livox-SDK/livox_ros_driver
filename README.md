@@ -3,6 +3,7 @@
 ### Run livox ros driver
 
 livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment. The driver offers users a wealth of options when using different launch file. There is *bd_list* arg in each launch file. All Livox LiDAR units in your LAN will be connected automatically in default.
+
 e.g.
 
 ```
@@ -10,6 +11,7 @@ roslaunch livox_ros_driver livox_lidar_rviz.launch
 ```
 
 If you want to connect to the specific LiDAR uint(s) only, please add the broadcast code into command line. 
+
 e.g.
 
 ```
