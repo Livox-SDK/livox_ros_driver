@@ -1,8 +1,6 @@
 
-# ignore dir
-build/
-devel/
-.catkin_workspace
+# ignore dir or file
+./CMakeLists.txt
 #whitelist
 
 

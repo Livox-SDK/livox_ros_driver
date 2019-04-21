@@ -26,7 +26,7 @@ find_package(Boost REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 
 ## get pointcloud package
-find_package(PCL REQUIRED)
+#find_package(PCL REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -134,7 +134,7 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
+#  ${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -176,8 +176,8 @@ include_directories(
 
 
 ## PCL library
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
+#link_directories(${PCL_LIBRARY_DIRS})
+#add_definitions(${PCL_DEFINITIONS})
 
 add_executable(${PROJECT_LIDAR}_node
 	${PROJECT_LIDAR_SRC})
@@ -196,7 +196,7 @@ add_executable(${PROJECT_LIDAR}_node
 target_link_libraries(${PROJECT_LIDAR}_node
     livox_sdk_static.a
 	${APR_LIBRARIES}
-    ${PCL_LIBRARIES}
+#    ${PCL_LIBRARIES}
 	${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
     -lrt
@@ -209,7 +209,7 @@ add_executable(${PROJECT_HUB}_node
 target_link_libraries(${PROJECT_HUB}_node
     livox_sdk_static.a
 	${APR_LIBRARIES}
-    ${PCL_LIBRARIES}
+#    ${PCL_LIBRARIES}
 	${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
     -lrt

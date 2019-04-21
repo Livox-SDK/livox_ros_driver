@@ -36,7 +36,7 @@
 
 #include "livox_sdk.h"
 #include <ros/ros.h>
-#include <pcl_ros/point_cloud.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <livox_ros_driver/CustomPoint.h>
 #include <livox_ros_driver/CustomMsg.h>
 
@@ -56,8 +56,6 @@ const uint32_t kPublishIntervalMs  = 50;         // unit:ms
 #define BD_ARGC_NUM                     (4)
 #define BD_ARGV_POS                     (1)
 #define COMMANDLINE_BD_SIZE             (15)
-
-typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
 
 #pragma pack(1)
 typedef struct {
@@ -252,16 +250,42 @@ static uint32_t GetPointInterval(uint32_t device_type) {
 /* for pointcloud convert process */
 static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_num, \
                                    uint8_t handle) {
+
   uint64_t timestamp = 0;
   uint64_t last_timestamp = 0;
   uint32_t published_packet = 0;
-  /* init point cloud data struct */
-  PointCloud::Ptr cloud (new PointCloud);
+  uint32_t point_num = 0;
+  uint32_t kPointXYZISize = 16;
+  sensor_msgs::PointCloud2 cloud;
 
-  cloud->header.frame_id = "livox_frame";
-  cloud->height = 1;
-  cloud->width  = 0;
+  // init ROS standard message header
+  cloud.header.frame_id = "livox_frame";
+  cloud.height = 1;
+  cloud.width  = 0;
 
+  // init ROS standard fields
+  cloud.fields.resize(4);
+  cloud.fields[0].offset = 0;
+  cloud.fields[0].name   = "x";
+  cloud.fields[0].count  = 1;
+  cloud.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud.fields[1].offset = 4;
+  cloud.fields[1].name   = "y";
+  cloud.fields[1].count  = 1;
+  cloud.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud.fields[2].offset = 8;
+  cloud.fields[2].name   = "z";
+  cloud.fields[2].count  = 1;
+  cloud.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
+  cloud.fields[3].offset = 12;
+  cloud.fields[3].name   = "intensity";
+  cloud.fields[3].count  = 1;
+  cloud.fields[3].datatype = sensor_msgs::PointField::FLOAT32;
+
+  // add pointcloud
+  cloud.data.resize(packet_num * kMaxPointPerEthPacket * kPointXYZISize);
+  cloud.point_step    = kPointXYZISize;
+  uint8_t *point_base = cloud.data.data();
   StoragePacket storage_packet;
   while (published_packet <  packet_num) {
     QueueProPop(queue, &storage_packet);
@@ -275,27 +299,34 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
       break;
     }
 
-    if (!cloud->width) {
-      cloud->header.stamp = timestamp / 1000; // to us
-      ROS_DEBUG("[%d]:%ld us", handle, cloud->header.stamp);
+    if (!cloud.width) {
+      cloud.header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
+      ROS_DEBUG("[%d]:%ld us", handle, timestamp);
     }
-    cloud->width += storage_packet.point_num;
+    cloud.width += storage_packet.point_num;
 
     for (uint32_t i = 0; i < storage_packet.point_num; i++) {
-      pcl::PointXYZI point;
-      point.x = raw_points->x/1000.0f;
-      point.y = raw_points->y/1000.0f;
-      point.z = raw_points->z/1000.0f;
-      point.intensity = (float) raw_points->reflectivity;
+      *((float*)(point_base +  0)) = raw_points->x/1000.0f;
+      *((float*)(point_base +  4)) = raw_points->y/1000.0f;
+      *((float*)(point_base +  8)) = raw_points->z/1000.0f;
+      *((float*)(point_base + 12)) = (float) raw_points->reflectivity;
       ++raw_points;
-      cloud->points.push_back(point);
+      ++point_num;
+      point_base += kPointXYZISize;
     }
 
     QueuePopUpdate(queue);
     last_timestamp = timestamp;
     ++published_packet;
   }
-  //ROS_INFO("%d", cloud->width);
+  //ROS_INFO("%d", cloud.width);
+
+  cloud.row_step = cloud.width * cloud.point_step;
+  cloud.is_bigendian = false;
+  cloud.is_dense     = true;
+  // adjust the real size
+  cloud.data.resize(cloud.row_step);
+  ROS_INFO("%ld", cloud.data.capacity());
   cloud_pub.publish(cloud);
 
   return published_packet;
@@ -340,7 +371,7 @@ static uint32_t PublishCustomPointcloud(StoragePacketQueue* queue, uint32_t pack
       ROS_DEBUG("[%d]:%ld %d", handle, livox_msg.timebase, point_interval);
     } else {
       packet_offset_time = (uint32_t)(timestamp - livox_msg.timebase);
-    }  
+    }
     livox_msg.point_num += storage_packet.point_num;
 
     for (uint32_t i = 0; i < storage_packet.point_num; i++) {
@@ -620,7 +651,7 @@ int main(int argc, char **argv) {
   int msg_type;
   livox_node.getParam("livox_msg_type", msg_type);
   if (kPointCloud2Msg == msg_type) {
-    cloud_pub = livox_node.advertise<PointCloud>("livox/lidar", kMaxStoragePackets);
+    cloud_pub = livox_node.advertise<sensor_msgs::PointCloud2>("livox/lidar", kMaxStoragePackets);
     ROS_INFO("Publish PointCloud2");
   } else {
     cloud_pub = livox_node.advertise<livox_ros_driver::CustomMsg>("livox/lidar", \
