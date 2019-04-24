@@ -37,6 +37,49 @@ find_package(Boost REQUIRED COMPONENTS thread)
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
 
+## make sure the livox_sdk_static library is installed
+find_library(LIVOX_SDK_LIBRARY liblivox_sdk_static.a /usr/local/lib)
+
+if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
+	# couldn't find the livox sdk library
+	message("Coudn't find livox sdk library")
+
+	include_directories(
+						./
+						${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/sdk_core/include
+						)
+	link_directories(
+						./
+						${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build/sdk_core
+						)
+
+	# clone livox sdk source code from github
+	execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
+	message("Try to pull the livox sdk source code from github")
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
+	execute_process(COMMAND git clone https://github.com/Livox-SDK/Livox-SDK.git ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK)
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
+	execute_process(COMMAND cmake .. WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build OUTPUT_VARIABLE cmd_res)
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
+	execute_process(COMMAND make WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build OUTPUT_VARIABLE cmd_res)
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
+else()
+	message("find livox sdk library success")
+endif()
+
+
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
