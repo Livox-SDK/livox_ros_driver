@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <math.h>
 #include <time.h>
 
@@ -40,22 +42,31 @@
 #include <livox_ros_driver/CustomPoint.h>
 #include <livox_ros_driver/CustomMsg.h>
 
-#define kMaxPointPerEthPacket           (100)
-#define kMaxStoragePackets              (128)      // must be 2^n
-#define KEthPacketHeaderLength          (18)   //(sizeof(LivoxEthPacket) - 1)
-#define KEthPacketMaxLength             (1500)
-#define KCartesianPointSize             (13)
-#define KSphericalPointSzie             (9)
+/* const varible -------------------------------------------------------------------------------- */
+/* user area */
+const uint32_t kPublishIntervalMs           = 50;          // unit:ms
 
-const uint64_t kPacketTimeGap      = 1000000;     // 1ms = 1000000ns
-const uint64_t kMaxPacketTimeGap   = 1700000;     // the threshold of packet continuous
-const uint64_t kDeviceDisconnectThreshold = 1000000000;     // the threshold of device disconect
-const uint64_t kNsPerSecond        = 1000000000;  // 1s  = 1000000000ns
-const uint32_t kPublishIntervalMs  = 50;         // unit:ms
+/* const parama */
+const uint32_t kMaxPointPerEthPacket        = 100;
+const uint32_t kMinEthPacketQueueSize       = 128;  // must be 2^n
+const uint32_t kMaxEthPacketQueueSize       = 8192; // must be 2^n
 
-#define BD_ARGC_NUM                     (4)
-#define BD_ARGV_POS                     (1)
-#define COMMANDLINE_BD_SIZE             (15)
+const uint32_t KEthPacketHeaderLength       = 18;   // (sizeof(LivoxEthPacket) - 1)
+const uint32_t KEthPacketMaxLength          = 1500;
+const uint32_t KCartesianPointSize          = 13;
+const uint32_t KSphericalPointSzie          = 9;
+
+const uint64_t kPacketTimeGap               = 1000000;     // 1ms = 1000000ns
+const uint64_t kMaxPacketTimeGap            = 1700000;     // the threshold of packet continuous
+const uint64_t kDeviceDisconnectThreshold   = 1000000000;  // the threshold of device disconect
+const uint64_t kNsPerSecond                 = 1000000000;  // 1s  = 1000000000ns
+
+const uint32_t kPublishIntervalUpperLimitMs = 2000;        // limit upper boundary 2s
+const uint32_t kPublishIntervalLowerLimitMs = 2;           // limit lower boundary to 2ms
+
+const int kBdArgcNum                        = 4;
+const int kBdArgvPos                        = 1;
+const int kCommandlineBdSize                = 15;
 
 #pragma pack(1)
 typedef struct {
@@ -74,7 +85,7 @@ typedef struct {
 #pragma pack()
 
 typedef struct {
-  StoragePacket *storage_packet[kMaxStoragePackets]; // size must be 2^n
+  StoragePacket *storage_packet; 
   volatile uint32_t rd_idx;
   volatile uint32_t wr_idx;
   uint32_t mask;
@@ -99,11 +110,8 @@ typedef enum {
   kLivoxCustomMsg
 } LivoxMsgType;
 
-StoragePacketQueue storage_packet_pool[kMaxLidarCount];
-
 /* for global publisher use */
 ros::Publisher cloud_pub;
-
 
 /* for device connect use ----------------------------------------------------------------------- */
 typedef enum {
@@ -117,6 +125,7 @@ typedef struct {
   DeviceState device_state;
   DeviceInfo info;
   LidarPacketStatistic statistic_info;
+  StoragePacketQueue packet_queue;
 } DeviceItem;
 
 DeviceItem lidars[kMaxLidarCount];
@@ -133,15 +142,45 @@ const char* broadcast_code_list[] = {
 /* total broadcast code, include broadcast_code_list and commandline input */
 std::vector<std::string > total_broadcast_code;
 
+/* power of 2 buferr operation */
+static bool IsPowerOf2(uint32_t size) {
+  return (size != 0) && ((size & (size - 1)) == 0);
+}
+
+static uint32_t RoundupPowerOf2(uint32_t size) {
+  uint32_t power2_val = 0;
+  for(int i = 0; i < 32; i++) {
+    power2_val = ((uint32_t)1) << i;
+    if(size <= power2_val) {
+      break;
+    }
+  }
+
+  return power2_val;
+}
+
 /* for pointcloud queue process */
-void InitQueue(StoragePacketQueue* queue) {
+int InitQueue(StoragePacketQueue* queue, uint32_t queue_size) {
+
+  if (queue == NULL) {
+    return 1;
+  }
+
+  if(IsPowerOf2(queue_size) != true) {
+    queue_size = RoundupPowerOf2(queue_size);
+  }
+
+  queue->storage_packet = new StoragePacket [queue_size];
+  if(queue->storage_packet == nullptr) {
+    return 1;
+  }
+
   queue->rd_idx = 0;
   queue->wr_idx = 0;
-  queue->size = kMaxStoragePackets;
-  queue->mask = kMaxStoragePackets - 1;
-  for (int i=0; i<kMaxStoragePackets; i++) {
-    queue->storage_packet[i] = new StoragePacket;
-  }
+  queue->size = queue_size;
+  queue->mask = queue_size - 1;
+
+  return 0;
 }
 
 void ResetQueue(StoragePacketQueue* queue) {
@@ -149,17 +188,11 @@ void ResetQueue(StoragePacketQueue* queue) {
   queue->wr_idx = 0;
 }
 
-void InitStoragePacketPool(void) {
-  for (int i=0; i<kMaxLidarCount; i++) {
-    InitQueue(&storage_packet_pool[i]);
-  }
-}
-
 static void QueueProPop(StoragePacketQueue* queue, StoragePacket* storage_packet) {
   uint32_t mask = queue->mask;
   uint32_t rd_idx = queue->rd_idx & mask;
 
-  memcpy(storage_packet, queue->storage_packet[rd_idx], sizeof(StoragePacket));
+  memcpy(storage_packet, &(queue->storage_packet[rd_idx]), sizeof(StoragePacket));
 }
 
 static void QueuePopUpdate(StoragePacketQueue* queue) {
@@ -198,9 +231,9 @@ uint32_t PushEthPacketToStorageQueue(StoragePacketQueue* queue, LivoxEthPacket* 
   uint32_t mask = queue->mask;
   uint32_t wr_idx = queue->wr_idx & mask;
 
-  queue->storage_packet[wr_idx]->time_rcv  = timebase;
-  queue->storage_packet[wr_idx]->point_num = point_num;
-  memcpy(queue->storage_packet[wr_idx]->raw_data, \
+  queue->storage_packet[wr_idx].time_rcv  = timebase;
+  queue->storage_packet[wr_idx].point_num = point_num;
+  memcpy(queue->storage_packet[wr_idx].raw_data, \
          reinterpret_cast<char *>(eth_packet), \
          GetEthPacketLen(eth_packet, point_num));
 
@@ -251,6 +284,27 @@ static uint32_t GetPointInterval(uint32_t device_type) {
     return 10000; // ns
   }
 }
+
+static uint32_t GetPacketNumPerSec(uint32_t device_type) {
+  if ((kDeviceTypeLidarTele == device_type) || \
+      (kDeviceTypeLidarHorizon == device_type)) {
+    return 2400; // 2400 raw packet per second
+  } else {
+    return 1000; // 1000 raw packet per second
+  }
+}
+
+static uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint32_t device_type) {
+  uint32_t queue_size = (1000000.0 / interval_ms) * GetPacketNumPerSec(device_type);
+  if (queue_size < kMinEthPacketQueueSize) {
+    queue_size = kMinEthPacketQueueSize;
+  } else if (queue_size > kMaxEthPacketQueueSize) {
+    queue_size = kMaxEthPacketQueueSize;
+  }
+
+  return queue_size;
+}
+
 
 /* for pointcloud convert process */
 static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_num, \
@@ -440,7 +494,12 @@ void GetLidarData(uint8_t hub_handle, LivoxEthPacket *data, uint32_t data_num) {
   }
   packet_statistic->last_timestamp = cur_timestamp;
 
-  StoragePacketQueue *p_queue = &storage_packet_pool[handle];
+  StoragePacketQueue *p_queue = &lidars[handle].packet_queue;
+  if (nullptr == p_queue->storage_packet) {
+     uint32_t queue_size = CalculatePacketQueueSize(kPublishIntervalMs, lidars[handle].info.type);
+     InitQueue(p_queue, queue_size);
+  }
+
   if (!QueueIsFull(p_queue)) {
     if (data_num <= kMaxPointPerEthPacket) {
       PushEthPacketToStorageQueue(p_queue, lidar_pack, data_num, packet_statistic->timebase);
@@ -450,7 +509,7 @@ void GetLidarData(uint8_t hub_handle, LivoxEthPacket *data, uint32_t data_num) {
 
 void PollPointcloudData(int msg_type) {
   for (int i = 0; i < kMaxLidarCount; i++) {
-      StoragePacketQueue *p_queue  = &storage_packet_pool[i];
+      StoragePacketQueue *p_queue  = &lidars[i].packet_queue;
 
     if (kDeviceStateSampling != lidars[i].device_state) {
       continue;
@@ -482,7 +541,7 @@ void AddLocalBroadcastCode(void) {
   for (int i = 0; i < BROADCAST_CODE_LIST_SIZE; ++i) {
     std::string invalid_bd = "000000000";
     ROS_INFO("broadcast code list :%s", broadcast_code_list[i]);
-    if ((COMMANDLINE_BD_SIZE == strlen(broadcast_code_list[i])) && \
+    if ((kCommandlineBdSize == strlen(broadcast_code_list[i])) && \
         (NULL == strstr(broadcast_code_list[i], invalid_bd.c_str()))) {
       AddBroadcastCode(broadcast_code_list[i]);
     } else {
@@ -501,7 +560,7 @@ void AddCommandlineBroadcastCode(const char* cammandline_str) {
   std::string invalid_bd = "000000000";
   while (bd_str != NULL) {
     ROS_INFO("commandline input bd:%s", bd_str);
-    if ((COMMANDLINE_BD_SIZE == strlen(bd_str)) && \
+    if ((kCommandlineBdSize == strlen(bd_str)) && \
         (NULL == strstr(bd_str, invalid_bd.c_str()))) {
       AddBroadcastCode(bd_str);
     } else {
@@ -658,16 +717,15 @@ int main(int argc, char **argv) {
 
   ROS_INFO("Livox-SDK ros demo");
 
-  InitStoragePacketPool();
   if (!Init()) {
     ROS_FATAL("Livox-SDK init fail!");
     return -1;
   }
 
   AddLocalBroadcastCode();
-  if (argc >= BD_ARGC_NUM) {
-    ROS_INFO("Commandline input %s", argv[BD_ARGV_POS]);
-    AddCommandlineBroadcastCode(argv[BD_ARGV_POS]);
+  if (argc >= kBdArgcNum) {
+    ROS_INFO("Commandline input %s", argv[kBdArgvPos]);
+    AddCommandlineBroadcastCode(argv[kBdArgvPos]);
   }
 
   if (total_broadcast_code.size() > 0) {
@@ -696,11 +754,11 @@ int main(int argc, char **argv) {
   int msg_type;
   livox_node.getParam("livox_msg_type", msg_type);
   if (kPointCloud2Msg == msg_type) {
-    cloud_pub = livox_node.advertise<sensor_msgs::PointCloud2>("livox/hub", kMaxStoragePackets);
+    cloud_pub = livox_node.advertise<sensor_msgs::PointCloud2>("livox/hub", kMinEthPacketQueueSize);
     ROS_INFO("Publish PointCloud2");
   } else {
     cloud_pub = livox_node.advertise<livox_ros_driver::CustomMsg>("livox/hub", \
-                                                       kMaxStoragePackets);
+                                                       kMinEthPacketQueueSize);
     ROS_INFO("Publish Livox Custom Msg");
   }
 
