@@ -37,27 +37,6 @@ find_package(Boost REQUIRED COMPONENTS thread)
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
 
-## make sure the livox_sdk_static library is installed
-find_library(LIVOX_SDK_LIBRARY liblivox_sdk_static.a /usr/local/lib)
-
-if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
-	# couldn't find the livox sdk library
-	message("Coudn't find livox sdk library")
-	include(ExternalProject)
-	ExternalProject_Add(
-		Livox-SDK
-		GIT_REPOSITORY https://github.com/Livox-SDK/Livox-SDK.git
-		TIMEOUT 15
-		CONFIGURE_COMMAND ""
-		BUILD_COMMAND ""
-		INSTALL_COMMAND ""
-		UPDATE_COMMAND ""
-		PATCH_COMMAND ""
-	)
-
-else()
-	message("find livox sdk library success")
-endif()
 
 
 ################################################
@@ -155,9 +134,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-#  ${PCL_INCLUDE_DIRS}
+	#include
+	${catkin_INCLUDE_DIRS}
+    #${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -193,50 +172,96 @@ if (APR_FOUND)
 endif (APR_FOUND)
 
 include_directories(
-	               ./
-	               ${APR_INCLUDE_DIRS}
-	               )
-
+	./
+	${APR_INCLUDE_DIRS}
+)
 
 ## PCL library
 #link_directories(${PCL_LIBRARY_DIRS})
 #add_definitions(${PCL_DEFINITIONS})
 
-add_executable(${PROJECT_LIDAR}_node
-	${PROJECT_LIDAR_SRC})
+## make sure the livox_sdk_static library is installed
+find_library(LIVOX_SDK_LIBRARY liblivox_sdk_static.a /usr/local/lib)
 
-## Rename C++ executable without prefix
-## The above recommended prefix causes long target names, the following renames the
-## target back to the shorter version for ease of user use
-## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-# set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
+	# couldn't find the livox sdk library
+	message("Coudn't find livox sdk library!")
+	message("Download Livox-SDK from github and build&install it please!")
+	message("Download Livox-SDK from github and build&install it please!")
+    
+	message("Use Livox-SDK binary lib in x86_64 platform, only for ROS distro jenkins build!")
+	include_directories(
+    	./lib_backup
+    )
 
-## Add cmake target dependencies of the executable
-## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+	link_directories(
+    	./lib_backup
+    )
+#    link_directories(
+#	
+#	)
+	## add lidar project here
+	add_executable(${PROJECT_LIDAR}_node
+		${PROJECT_LIDAR_SRC}
+	)
+	
+#add_dependencies(${PROJECT_LIDAR}_node liblivox_sdk_static.a)
 
-## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_LIDAR}_node
-    livox_sdk_static.a
-	${APR_LIBRARIES}
-#    ${PCL_LIBRARIES}
-	${catkin_LIBRARIES}
-    ${Boost_LIBRARIES}
-    -lrt
-  )
+	target_link_libraries(${PROJECT_LIDAR}_node
+		livox_sdk_static.a
+		${APR_LIBRARIES}
+		${catkin_LIBRARIES}
+		${Boost_LIBRARIES}
+		-lrt
+	)
 
-## add hub project here
-add_executable(${PROJECT_HUB}_node
-	${PROJECT_HUB_SRC})
+	## add hub project here
+	add_executable(${PROJECT_HUB}_node
+		${PROJECT_HUB_SRC}
+	)
 
-target_link_libraries(${PROJECT_HUB}_node
-    livox_sdk_static.a
-	${APR_LIBRARIES}
-#    ${PCL_LIBRARIES}
-	${catkin_LIBRARIES}
-    ${Boost_LIBRARIES}
-    -lrt
-  )
+	target_link_libraries(${PROJECT_HUB}_node
+    	livox_sdk_static.a
+		${APR_LIBRARIES}
+		${catkin_LIBRARIES}
+    	${Boost_LIBRARIES}
+    	-lrt
+	)
+
+else()
+	message("find livox sdk library success")
+
+	## add lidar project here
+	add_executable(${PROJECT_LIDAR}_node
+		${PROJECT_LIDAR_SRC}
+	)
+	
+	add_dependencies(${PROJECT_LIDAR}_node livox_ros_driver_generate_messages_cpp)
+	
+	target_link_libraries(${PROJECT_LIDAR}_node
+		livox_sdk_static.a
+		${APR_LIBRARIES}
+		${catkin_LIBRARIES}
+		${Boost_LIBRARIES}
+		-lrt
+	)
+
+	## add hub project here
+	add_executable(${PROJECT_HUB}_node
+		${PROJECT_HUB_SRC}
+	)
+
+	add_dependencies(${PROJECT_HUB}_node livox_ros_driver_generate_messages_cpp)
+	
+	target_link_libraries(${PROJECT_HUB}_node
+    	livox_sdk_static.a
+		${APR_LIBRARIES}
+		${catkin_LIBRARIES}
+    	${Boost_LIBRARIES}
+    	-lrt
+	)
+
+endif()
 
 #############
 ## Install ##
