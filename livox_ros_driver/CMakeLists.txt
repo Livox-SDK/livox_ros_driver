@@ -182,18 +182,11 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	message("Coudn't find livox sdk library!")
 	message("Download Livox-SDK from github and build&install it please!")
 	message("Download Livox-SDK from github and build&install it please!")
+	message("Download Livox-SDK from github and build&install it please!")
 
-	message("Use Livox-SDK binary lib in x86_64 platform, only for ROS distro jenkins build!")
-	include_directories(
-		./lib_backup
-	)
-
-	link_directories(
-		./lib_backup
-	)
-
+	message("git clone Livox-SDK from github temporarily, only for ROS distro jenkins build!")
     # clone livox sdk source code from github
-	execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
+	execute_process(COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
 	message("Try to pull the livox sdk source code from github")
 	#FOREACH(res ${cmd_res})
 	#	MESSAGE(${res})
@@ -203,6 +196,26 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	FOREACH(res ${cmd_res})
 		MESSAGE(${res})
 	ENDFOREACH()
+	
+	execute_process(COMMAND cmake .. WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build OUTPUT_VARIABLE cmd_res)
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
+	execute_process(COMMAND make WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build OUTPUT_VARIABLE cmd_res)
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+	
+	include_directories(
+		./
+		${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/sdk_core/include
+	)
+	
+	link_directories(
+		./
+		${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build/sdk_core
+	)
 
 	## add lidar project here
 	add_executable(${PROJECT_LIDAR}_node
