@@ -64,8 +64,7 @@ find_package(Boost REQUIRED COMPONENTS thread)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-    FILES
+add_message_files(FILES
 	CustomPoint.msg
 	CustomMsg.msg
 #   Message2.msg
@@ -86,8 +85,7 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-    DEPENDENCIES
+generate_messages(DEPENDENCIES
     std_msgs
  )
 
@@ -120,11 +118,8 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES lidar_sdk
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-#  DEPENDS system_lib
+catkin_package(CATKIN_DEPENDS
+	roscpp rospy std_msgs message_runtime
 )
 
 ###########
@@ -134,7 +129,6 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-	#include
 	${catkin_INCLUDE_DIRS}
     #${PCL_INCLUDE_DIRS}
 )
@@ -188,7 +182,7 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	message("Coudn't find livox sdk library!")
 	message("Download Livox-SDK from github and build&install it please!")
 	message("Download Livox-SDK from github and build&install it please!")
-    
+
 	message("Use Livox-SDK binary lib in x86_64 platform, only for ROS distro jenkins build!")
 	include_directories(
     	./lib_backup
@@ -197,15 +191,13 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	link_directories(
     	./lib_backup
     )
-#    link_directories(
-#	
-#	)
+
 	## add lidar project here
 	add_executable(${PROJECT_LIDAR}_node
 		${PROJECT_LIDAR_SRC}
 	)
-	
-#add_dependencies(${PROJECT_LIDAR}_node liblivox_sdk_static.a)
+
+	add_dependencies(${PROJECT_LIDAR}_node ${PROJECT_NAME}_generate_messages_cpp)
 
 	target_link_libraries(${PROJECT_LIDAR}_node
 		livox_sdk_static.a
@@ -219,6 +211,8 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	add_executable(${PROJECT_HUB}_node
 		${PROJECT_HUB_SRC}
 	)
+
+	add_dependencies(${PROJECT_LIDAR}_node ${PROJECT_NAME}_generate_messages_cpp)
 
 	target_link_libraries(${PROJECT_HUB}_node
     	livox_sdk_static.a
@@ -235,9 +229,9 @@ else()
 	add_executable(${PROJECT_LIDAR}_node
 		${PROJECT_LIDAR_SRC}
 	)
-	
-	add_dependencies(${PROJECT_LIDAR}_node livox_ros_driver_generate_messages_cpp)
-	
+
+	add_dependencies(${PROJECT_LIDAR}_node ${PROJECT_NAME}_generate_messages_cpp)
+
 	target_link_libraries(${PROJECT_LIDAR}_node
 		livox_sdk_static.a
 		${APR_LIBRARIES}
@@ -251,8 +245,8 @@ else()
 		${PROJECT_HUB_SRC}
 	)
 
-	add_dependencies(${PROJECT_HUB}_node livox_ros_driver_generate_messages_cpp)
-	
+	add_dependencies(${PROJECT_HUB}_node ${PROJECT_NAME}_generate_messages_cpp)
+
 	target_link_libraries(${PROJECT_HUB}_node
     	livox_sdk_static.a
 		${APR_LIBRARIES}
