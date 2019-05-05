@@ -192,6 +192,18 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
     	./lib_backup
     )
 
+    # clone livox sdk source code from github
+	execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
+	message("Try to pull the livox sdk source code from github")
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
+	execute_process(COMMAND git clone https://github.com/Livox-SDK/Livox-SDK.git ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK)
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
+
 	## add lidar project here
 	add_executable(${PROJECT_LIDAR}_node
 		${PROJECT_LIDAR_SRC}

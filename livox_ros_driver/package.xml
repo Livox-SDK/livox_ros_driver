@@ -65,6 +65,8 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>sensor_msgs</depend>
+  <depend>git</depend>
+  <depend>apr</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
