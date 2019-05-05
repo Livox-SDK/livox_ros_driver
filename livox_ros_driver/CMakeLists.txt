@@ -188,9 +188,9 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
     # clone livox sdk source code from github
 	execute_process(COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
 	message("Try to pull the livox sdk source code from github")
-	#FOREACH(res ${cmd_res})
-	#	MESSAGE(${res})
-	#ENDFOREACH()
+	FOREACH(res ${cmd_res})
+		MESSAGE(${res})
+	ENDFOREACH()
 
 	execute_process(COMMAND git clone https://github.com/Livox-SDK/Livox-SDK.git ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
 	FOREACH(res ${cmd_res})
