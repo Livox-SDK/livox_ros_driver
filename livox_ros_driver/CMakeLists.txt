@@ -130,7 +130,7 @@ catkin_package(CATKIN_DEPENDS
 ## Your package locations should be listed before other locations
 include_directories(
 	${catkin_INCLUDE_DIRS}
-    #${PCL_INCLUDE_DIRS}
+	#${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -162,7 +162,7 @@ find_package(PkgConfig)
 pkg_check_modules(APR apr-1)
 if (APR_FOUND)
 	message(${APR_INCLUDE_DIRS})
-    message(${APR_LIBRARIES})
+	message(${APR_LIBRARIES})
 endif (APR_FOUND)
 
 include_directories(
@@ -185,7 +185,8 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	message("Download Livox-SDK from github and build&install it please!")
 
 	message("git clone Livox-SDK from github temporarily, only for ROS distro jenkins build!")
-    # clone livox sdk source code from github
+	
+	# clone livox sdk source code from github
 	execute_process(COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
 	message("Try to pull the livox sdk source code from github")
 	FOREACH(res ${cmd_res})
@@ -240,11 +241,11 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	add_dependencies(${PROJECT_LIDAR}_node ${PROJECT_NAME}_generate_messages_cpp)
 
 	target_link_libraries(${PROJECT_HUB}_node
-    	livox_sdk_static.a
+		livox_sdk_static.a
 		${APR_LIBRARIES}
 		${catkin_LIBRARIES}
-    	${Boost_LIBRARIES}
-    	-lrt
+		${Boost_LIBRARIES}
+		-lrt
 	)
 
 else()
@@ -273,11 +274,11 @@ else()
 	add_dependencies(${PROJECT_HUB}_node ${PROJECT_NAME}_generate_messages_cpp)
 
 	target_link_libraries(${PROJECT_HUB}_node
-    	livox_sdk_static.a
+		livox_sdk_static.a
 		${APR_LIBRARIES}
 		${catkin_LIBRARIES}
-    	${Boost_LIBRARIES}
-    	-lrt
+		${Boost_LIBRARIES}
+		-lrt
 	)
 
 endif()
