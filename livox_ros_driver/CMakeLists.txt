@@ -185,19 +185,19 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 
 	message("Use Livox-SDK binary lib in x86_64 platform, only for ROS distro jenkins build!")
 	include_directories(
-    	./lib_backup
-    )
+		./lib_backup
+	)
 
 	link_directories(
-    	./lib_backup
-    )
+		./lib_backup
+	)
 
     # clone livox sdk source code from github
 	execute_process(COMMAND mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
 	message("Try to pull the livox sdk source code from github")
-	FOREACH(res ${cmd_res})
-		MESSAGE(${res})
-	ENDFOREACH()
+	#FOREACH(res ${cmd_res})
+	#	MESSAGE(${res})
+	#ENDFOREACH()
 
 	execute_process(COMMAND git clone https://github.com/Livox-SDK/Livox-SDK.git ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK)
 	FOREACH(res ${cmd_res})
