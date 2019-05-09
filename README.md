@@ -1,8 +1,34 @@
 # Livox ROS Driver
 
+livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment.
+
+### Compile & Install Livox SDK
+
+livox_ros_driver depends on Livox-SDK lib. If you have never installed Livox-SDK lib or it is out of date, you must first install Livox-SDK lib. If you have installed the latest version of Livox-SDK, skip this step and go to the next step.
+
+1. Download or clone the [Livox-SDK/Livox-SDK](https://github.com/Livox-SDK/Livox-SDK/) repository on GitHub.
+2. Compile and install the Livox-SDK under the ***build*** directory following `README.md` of Livox-SDK/Livox-SDK.
+
+### Clone livox_ros_driver
+
+1. Clone livox_ros_driver package for github:
+
+   `git clone https://github.com/Livox-SDK/livox_ros_driver.git ws_livox/src`
+
+2. Build livox_ros_driver package:
+
+```
+  cd ws_livox
+  catkin_make
+```
+
+3. Package environment setup:
+
+​        `source ./devel/setup.sh`
+
 ### Run livox ros driver
 
-livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment. The driver offers users a wealth of options when using different launch file. There is *bd_list* arg in each launch file. All Livox LiDAR units in your LAN will be connected automatically in default.
+The driver offers users a wealth of options when using different launch file. There is *bd_list* arg in each launch file. All Livox LiDAR units in your LAN will be connected automatically in default.
 
 e.g.
 
