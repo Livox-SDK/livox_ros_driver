@@ -17,14 +17,14 @@ livox_ros_driver depends on Livox-SDK lib. If you have never installed Livox-SDK
 
 2. Build livox_ros_driver package:
 
-```
-  cd ws_livox
-  catkin_make
-```
+   ```
+   cd ws_livox
+   catkin_make
+   ```
 
 3. Package environment setup:
 
-​        `source ./devel/setup.sh`
+    `source ./devel/setup.sh`
 
 ### Run livox ros driver
 
