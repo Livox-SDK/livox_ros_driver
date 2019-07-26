@@ -41,6 +41,8 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <livox_ros_driver/CustomPoint.h>
 #include <livox_ros_driver/CustomMsg.h>
+#include <pcl_ros/point_cloud.h>
+
 
 /* const varible -------------------------------------------------------------------------------- */
 /* user area */
@@ -112,6 +114,7 @@ typedef enum {
 
 /* for global publisher use */
 ros::Publisher cloud_pub;
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
 
 /* for device connect use ----------------------------------------------------------------------- */
 typedef enum {
@@ -300,7 +303,7 @@ static uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint32_t device_t
   return queue_size;
 }
 
-
+#if 0
 /* for pointcloud convert process */
 static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_num, \
                                    uint8_t handle) {
@@ -311,6 +314,10 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
   uint32_t point_num = 0;
   uint32_t kPointXYZISize = 16;
   sensor_msgs::PointCloud2 cloud;
+
+  if (!packet_num) {
+    return -1;
+  }
 
   // init ROS standard message header
   cloud.header.frame_id = "livox_frame";
@@ -379,12 +386,74 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
   cloud.is_bigendian = false;
   cloud.is_dense     = true;
   // adjust the real size
-  cloud.data.resize(cloud.row_step);
-  ROS_INFO("%ld", cloud.data.capacity());
+  //cloud.data.resize(cloud.row_step);
+  //ROS_INFO("%ld", cloud.data.capacity());
   cloud_pub.publish(cloud);
 
   return published_packet;
 }
+#endif
+
+/* for pointcloud convert process */
+static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_num, \
+                                   uint8_t handle) {
+  uint64_t timestamp = 0;
+  uint64_t last_timestamp = 0;
+  uint32_t published_packet = 0;
+  uint32_t point_num = 0;
+  
+  /* init point cloud data struct */
+  PointCloud::Ptr cloud (new PointCloud);
+  cloud->header.frame_id = "livox_frame";
+  cloud->height = 1;
+  cloud->width  = 0;
+  
+  // add pointcloud
+  StoragePacket storage_packet;
+  while (published_packet <  packet_num) {
+    QueueProPop(queue, &storage_packet);
+    LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
+    LivoxRawPoint* raw_points = reinterpret_cast<LivoxRawPoint *>(raw_packet->data);
+
+    timestamp = GetStoragePacketTimestamp(&storage_packet);
+    if (published_packet && \
+        ((timestamp - last_timestamp) > kMaxPacketTimeGap)) {
+      ROS_INFO("packet loss : %ld", timestamp);
+      break;
+    }
+
+    if (!cloud->width) {
+      //cloud->header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
+      
+      cloud->header.stamp = timestamp/1000000000.0; // to ros time stamp
+      ROS_DEBUG("[%d]:%ld us", handle, timestamp);
+    }
+    cloud->width += storage_packet.point_num;
+
+    for (uint32_t i = 0; i < storage_packet.point_num; i++) {
+      pcl::PointXYZI point;
+      point.x = raw_points->x/1000.0f;
+      point.y = raw_points->y/1000.0f;
+      point.z = raw_points->z/1000.0f;
+      point.intensity = (float)raw_points->reflectivity;
+      cloud->points.push_back(point);
+  
+      ++raw_points;
+      ++point_num;
+    }
+
+    QueuePopUpdate(queue);
+    last_timestamp = timestamp;
+    ++published_packet;
+  }
+
+  //ROS_INFO("%ld", ptr_cloud->data.capacity());
+
+  cloud_pub.publish(cloud);
+
+  return published_packet;
+}
+
 
 /* for pointcloud convert process */
 static uint32_t PublishCustomPointcloud(StoragePacketQueue* queue, uint32_t packet_num,\
@@ -710,11 +779,11 @@ int main(int argc, char **argv) {
   livox_node.getParam("livox_msg_type", msg_type);
   if (kPointCloud2Msg == msg_type) {
     cloud_pub = livox_node.advertise<sensor_msgs::PointCloud2>("livox/lidar", \
-                                                       kMinEthPacketQueueSize);
+                                                       kMaxEthPacketQueueSize);
     ROS_INFO("Publish PointCloud2");
   } else {
     cloud_pub = livox_node.advertise<livox_ros_driver::CustomMsg>("livox/lidar", \
-                                                       kMinEthPacketQueueSize);
+                                                       kMaxEthPacketQueueSize);
     ROS_INFO("Publish Livox Custom Msg");
   }
 
