@@ -425,7 +425,7 @@ static uint32_t PublishPointcloud2(StoragePacketQueue* queue, uint32_t packet_nu
     if (!cloud->width) {
       //cloud->header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
       
-      cloud->header.stamp = timestamp/1000000000.0; // to ros time stamp
+      cloud->header.stamp = timestamp/1000.0; // to ros time stamp
       ROS_DEBUG("[%d]:%ld us", handle, timestamp);
     }
     cloud->width += storage_packet.point_num;
