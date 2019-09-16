@@ -77,7 +77,7 @@ Visualization Manager:
       Size (m): 0.005
       Style: Flat Squares
       Topic: /livox/lidar
-      Unreliable: true
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
@@ -107,7 +107,7 @@ Visualization Manager:
       Size (m): 0.005
       Style: Flat Squares
       Topic: /livox/hub
-      Unreliable: true
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
