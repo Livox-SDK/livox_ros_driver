@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>livox_ros_driver</name>
-  <version>1.1.0</version>
+  <version>2.0.0</version>
   <description>The ROS device driver for Livox 3D LiDARs and Livox Hub</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -54,20 +54,23 @@
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>rosbag</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>rosbag</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>rosbag</exec_depend>
 
   <depend>sensor_msgs</depend>
   <depend>git</depend>
   <depend>apr</depend>
-
+  
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
