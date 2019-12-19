@@ -153,22 +153,22 @@ There are two json files in the directory "ws_livox/src/livox_ros_driver/launch"
    {
    	"lidar_config": [
    		{
-   			"broadcast_code": "0TFDG3B006H2Z11",
-   			"enable_connect": true,
-   			"enable_fan": true,
-   			"return_mode": 0,
-   			"coordinate": 0,
-   			"imu_rate": 1,
-   			"extrinsic_parameter_source": 1
+			"broadcast_code": "0TFDG3B006H2Z11",
+			"enable_connect": true,
+			"enable_fan": true,
+			"return_mode": 0,
+			"coordinate": 0,
+			"imu_rate": 1,
+			"extrinsic_parameter_source": 1
         	},
    		{
-                        "broadcast_code": "1HDDG8M00100191",
-   			"enable_connect": true,
-       		        "enable_fan": true,
-       		        "return_mode": 0,
-       		        "coordinate": 0,
-       		        "imu_rate": 1,
-                        "extrinsic_parameter_source": 1
+			"broadcast_code": "1HDDG8M00100191",
+			"enable_connect": true,
+			"enable_fan": true,
+			"return_mode": 0,
+			"coordinate": 0,
+			"imu_rate": 1,
+			"extrinsic_parameter_source": 1
    		}
    	]
    }
