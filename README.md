@@ -142,7 +142,7 @@ There are two json files in the directory "ws_livox/src/livox_ros_driver/launch"
    			"coordinate": 0,
    			"imu_rate": 1,
    			"extrinsic_parameter_source": 0
-        	}
+		}
        ]
    }
    ```
@@ -151,8 +151,8 @@ There are two json files in the directory "ws_livox/src/livox_ros_driver/launch"
 
    ```
    {
-   	"lidar_config": [
-   		{
+   		"lidar_config": [
+		{
 			"broadcast_code": "0TFDG3B006H2Z11",
 			"enable_connect": true,
 			"enable_fan": true,
@@ -170,7 +170,7 @@ There are two json files in the directory "ws_livox/src/livox_ros_driver/launch"
 			"imu_rate": 1,
 			"extrinsic_parameter_source": 1
    		}
-   	]
+	]
    }
    ```
 
@@ -181,21 +181,21 @@ There are two json files in the directory "ws_livox/src/livox_ros_driver/launch"
    The content of the  livox_hub_config.json is as follows :
 
    ```
-   {
-   	"hub_config": {
-   		"broadcast_code": "13UUG1R00400170",
-   		"enable_connect": true,
-   		"coordinate": 0
-   	},
-   	"lidar_config": [
-   		{
-   			"broadcast_code": "0TFDG3B006H2Z11",
-   			"enable_fan": true,
-   			"return_mode": 0,
-   			"imu_rate": 1
-   		}
-   	]
-   }
+{
+	"hub_config": {
+		"broadcast_code": "13UUG1R00400170",
+		"enable_connect": true,
+		"coordinate": 0
+	},
+	"lidar_config": [
+		{
+			"broadcast_code": "0TFDG3B006H2Z11",
+			"enable_fan": true,
+			"return_mode": 0,
+			"imu_rate": 1
+		}
+	]
+}
    ```
 
 If you want to config a new LiDAR  by the livox_hub_config.json file, For example , if you want to config a LiDAR (broadcast code : "1HDDG8M00100191") :   (1) enable connection；(2) enable fan; (3) select First single return mode; (4) use Cartesian coordinate; (5) use Cartesian coordinate; (6) set imu rate to 200.  the content  of the livox_hub_config.json file should be : 
