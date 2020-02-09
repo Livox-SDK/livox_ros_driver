@@ -13,7 +13,7 @@ message(STATUS "livox_ros_driver version: ${LIVOX_ROS_DRIVER_VERSION}")
 #---------------------------------------------------------------------------------------
 # find package and the dependecy
 #---------------------------------------------------------------------------------------
-find_package(Boost 1.54 REQUIRED COMPONENTS 
+find_package(Boost 1.54 REQUIRED COMPONENTS
 	system
 	thread
 	chrono
@@ -28,10 +28,10 @@ find_package(catkin REQUIRED COMPONENTS
 	sensor_msgs
 	std_msgs
 	message_generation
-	rosbag	
+	rosbag
 	)
 
-## Find pcl lib 
+## Find pcl lib
 find_package(PCL REQUIRED)
 
 ## Generate messages in the 'msg' folder
@@ -91,7 +91,7 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	message("Download Livox-SDK from github and build&install it please!")
 
 	message("git clone Livox-SDK from github temporarily, only for ROS distro jenkins build!")
-	
+
 	# clone livox sdk source code from github
 	execute_process(COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK OUTPUT_VARIABLE cmd_res)
 	message("Try to pull the livox sdk source code from github")
@@ -103,7 +103,7 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	FOREACH(res ${cmd_res})
 		MESSAGE(${res})
 	ENDFOREACH()
-	
+
 	execute_process(COMMAND cmake .. WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build OUTPUT_VARIABLE cmd_res)
 	FOREACH(res ${cmd_res})
 		MESSAGE(${res})
@@ -113,12 +113,12 @@ if((NOT LIVOX_SDK_LIBRARY) OR (NOT EXISTS ${LIVOX_SDK_LIBRARY}))
 	FOREACH(res ${cmd_res})
 		MESSAGE(${res})
 	ENDFOREACH()
-	
+
 	include_directories(
 		./
 		${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/sdk_core/include
 	)
-	
+
 	link_directories(
 		./
 		${CMAKE_CURRENT_SOURCE_DIR}/Livox-SDK/build/sdk_core
@@ -128,8 +128,8 @@ else()
 	message("find livox sdk library success")
 endif()
 
-## PCL library 
-link_directories(${PCL_LIBRARY_DIRS}) 
+## PCL library
+link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 #---------------------------------------------------------------------------------------
@@ -191,12 +191,23 @@ target_include_directories(${PROJECT_NAME}_node
 #---------------------------------------------------------------------------------------
 # link libraries
 #---------------------------------------------------------------------------------------
-target_link_libraries(${PROJECT_NAME}_node 	
+target_link_libraries(${PROJECT_NAME}_node
 	livox_sdk_static.a
 	${Boost_LIBRARY}
 	${catkin_LIBRARIES}
 	${PCL_LIBRARIES}
 	${APR_LIBRARIES}
+	)
+
+
+#---------------------------------------------------------------------------------------
+# Install
+#---------------------------------------------------------------------------------------
+
+install(TARGETS ${PROJECT_NAME}_node
+	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 	)
 
 #---------------------------------------------------------------------------------------
