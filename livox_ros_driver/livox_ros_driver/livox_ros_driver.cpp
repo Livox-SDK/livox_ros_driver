@@ -22,17 +22,18 @@
 // SOFTWARE.
 //
 
+#include "include/livox_ros_driver.h"
+
 #include <vector>
 #include <chrono>
 
-#include "livox_sdk.h"
 #include <ros/ros.h>
-
+#include "livox_sdk.h"
 #include "lds_lvx.h"
 #include "lds_lidar.h"
 #include "lds_hub.h"
 #include "lddc.h"
-#include "include/livox_ros_driver.h"
+
 
 using namespace livox_ros;
 

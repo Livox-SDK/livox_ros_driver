@@ -375,7 +375,23 @@ PointConvertHandler GetConvertHandler(uint8_t data_type) {
     return nullptr;
 }
 
+uint8_t* FillZeroPointXyzrtl(uint8_t* point_buf,  uint32_t num) {
+  LivoxPointXyzrtl* dst_point = (LivoxPointXyzrtl *)point_buf;
+  uint32_t points_per_packet  = num;
 
+  while(points_per_packet) {
+    dst_point->x = 0;
+    dst_point->y = 0;
+    dst_point->z = 0;
+    dst_point->reflectivity = 0;
+    dst_point->tag  = 0;
+    dst_point->line = 0;
+    ++dst_point;
+    --points_per_packet;
+  }
+
+  return (uint8_t *)dst_point;
+}
 
 #if 0
 

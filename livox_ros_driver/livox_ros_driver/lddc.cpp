@@ -129,18 +129,24 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue* queue, uint32_t packet_num, ui
   while (published_packet <  packet_num) {
     QueueProPop(queue, &storage_packet);
     LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
-
+    
+    uint32_t packet_interval = GetPointInterval(raw_packet->data_type);
+    uint64_t packet_loss_threshold = packet_interval + packet_interval / 2;
     timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
     if (published_packet && \
-       ((timestamp - last_timestamp) > kMaxPacketTimeGap)) {
+       ((timestamp - last_timestamp) > packet_loss_threshold)) {
        if (kSourceLvxFile != data_source) {
-        ROS_INFO("Lidar[%d] packet loss", handle);
+        ROS_INFO("Lidar[%d] packet loss");
+        point_base = FillZeroPointXyzrtl(point_base, storage_packet.point_num);
+        cloud.width += storage_packet.point_num; 
+        last_timestamp = last_timestamp + packet_interval;
+        ++published_packet;
         break;
       }
     }
 
-    if (!published_packet) {
-      cloud.header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
+    if (!published_packet) { // use the first packet timestamp as pointcloud2 msg timestamp
+      cloud.header.stamp = ros::Time(timestamp/1000000000.0);
     }
     cloud.width += storage_packet.point_num;
 
@@ -410,27 +416,17 @@ void Lddc::PollingLidarPointCloudData(uint8_t handle, LidarDevice* lidar) {
 
   while (!QueueIsEmpty(p_queue)) {
     uint32_t used_size = QueueUsedSize(p_queue);
-    uint32_t publish_packet_upper_limit = GetPacketNumPerSec(lidar->info.type);
-    uint32_t publish_packet_lower_limit = publish_packet_upper_limit / 2 / ((uint32_t)publish_frq_);
-    /** increase margin */
-    publish_packet_upper_limit = publish_packet_upper_limit + publish_packet_upper_limit / 10;
-    if (used_size < publish_packet_lower_limit) {
+    uint32_t onetime_publish_packets = GetPacketNumPerSec(lidar->info.type) / publish_frq_;
+    if (used_size < onetime_publish_packets) {
       break;
     }
 
-    if (used_size > publish_packet_upper_limit) {
-      used_size = publish_packet_upper_limit;
-    }
-
     if (kPointCloud2Msg == transfer_format_) {
-      if (used_size == PublishPointcloud2(p_queue, used_size, handle)) {
-      }
+      PublishPointcloud2(p_queue, onetime_publish_packets, handle);
     } else if (kLivoxCustomMsg == transfer_format_) {
-      if (used_size == PublishCustomPointcloud(p_queue, used_size, handle)) {
-      }
+      PublishCustomPointcloud(p_queue, onetime_publish_packets, handle);
     } else if (kPclPxyziMsg == transfer_format_) {
-      if (used_size == PublishPointcloudData(p_queue, used_size, handle)) {
-      }
+      PublishPointcloudData(p_queue, onetime_publish_packets, handle);
     }
   }
 }

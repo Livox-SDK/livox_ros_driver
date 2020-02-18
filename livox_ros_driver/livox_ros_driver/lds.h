@@ -179,8 +179,9 @@ typedef struct {
 
 typedef struct {
   uint32_t points_per_packet;
-  uint32_t points_per_second;  /**< unit:ns */
-  uint32_t point_interval;
+  uint32_t points_per_second;
+  uint32_t point_interval;     /**< unit:ns */
+  uint32_t packet_interval;    /**< unit:ns */
   uint32_t packet_length;
 } PacketInfoPair;
 
@@ -215,13 +216,13 @@ typedef uint8_t* (* PointConvertHandler)(uint8_t* point_buf, LivoxEthPacket* eth
                                          ExtrinsicParameter& extrinsic);
 
 const PacketInfoPair packet_info_pair_table[kMaxPointDataType] = {
-  {100, 100000, 10000   , 1318},
-  {100, 100000, 10000   , 918},
-  {96,  240000, 4167    , 1362},
-  {96,  240000, 4167    , 978},
-  {96,  480000, 4167    , 1362},
-  {48,  480000, 4167    , 978},
-  {1,   100,    10000000, 42}
+  {100, 100000, 10000   ,1000000   ,1318},
+  {100, 100000, 10000   ,1000000   ,918},
+  {96,  240000, 4167    ,400000    ,1362},
+  {96,  240000, 4167    ,400000    ,978},
+  {96,  480000, 4167    ,400000    ,1362},
+  {48,  480000, 4167    ,400000    ,978},
+  {1,   100,    10000000,10000000  ,42}
 };
 
 /**
@@ -235,6 +236,7 @@ void ParseCommandlineInputBdCode(const char* cammandline_str,
 PointConvertHandler GetConvertHandler(uint8_t data_type);
 uint8_t* LivoxPointToPxyzrtl(uint8_t* point_buf, LivoxEthPacket* eth_packet, \
                              ExtrinsicParameter& extrinsic);
+uint8_t* FillZeroPointXyzrtl(uint8_t* point_buf,  uint32_t num);
 uint8_t* LivoxImuDataProcess(uint8_t* point_buf,  LivoxEthPacket* eth_packet);
 void EulerAnglesToRotationMatrix(EulerAngle euler, RotationMatrix matrix);
 void PointExtrisincCompensation(PointXyz* dst_point, ExtrinsicParameter& extrinsic);
@@ -250,6 +252,10 @@ inline uint32_t GetPacketNumPerSec(uint32_t data_type) {
 
 inline uint32_t GetPointsPerPacket(uint32_t data_type) {
   return packet_info_pair_table[data_type].points_per_packet;
+}
+
+inline uint32_t GetPacketInterval(uint32_t data_type) {
+  return packet_info_pair_table[data_type].packet_interval;
 }
 
 inline uint32_t GetEthPacketLen(uint32_t data_type) {
