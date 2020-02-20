@@ -28,15 +28,17 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include "lds_lvx.h"
-#include "lds_lidar.h"
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/Imu.h>
 #include <rosbag/bag.h>
+#include <pcl_ros/point_cloud.h>
+
+#include "lds_lvx.h"
+#include "lds_lidar.h"
 #include <livox_ros_driver/CustomPoint.h>
 #include <livox_ros_driver/CustomMsg.h>
-#include <pcl_ros/point_cloud.h>
+
 
 namespace livox_ros {
 
@@ -130,18 +132,22 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue* queue, uint32_t packet_num, ui
     QueueProPop(queue, &storage_packet);
     LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
     
-    uint32_t packet_interval = GetPointInterval(raw_packet->data_type);
-    uint64_t packet_loss_threshold = packet_interval + packet_interval / 2;
+    uint32_t packet_interval = GetPacketInterval(raw_packet->data_type);
+    int64_t packet_loss_threshold_lower = packet_interval + packet_interval / 2;
     timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
-    if (published_packet && \
-       ((timestamp - last_timestamp) > packet_loss_threshold)) {
+    int64_t packet_gap = timestamp - last_timestamp;
+    if (published_packet && (packet_gap > packet_loss_threshold_lower)) {
        if (kSourceLvxFile != data_source) {
-        ROS_INFO("Lidar[%d] packet loss");
+        ROS_INFO("Lidar[%d] packet loss %ld", handle, packet_loss_threshold_lower);
+        int64_t packet_loss_threshold_upper = packet_interval * packet_num;
+        if (packet_gap > packet_loss_threshold_upper) { // skip when gap is too large
+          break;
+        }
         point_base = FillZeroPointXyzrtl(point_base, storage_packet.point_num);
         cloud.width += storage_packet.point_num; 
         last_timestamp = last_timestamp + packet_interval;
         ++published_packet;
-        break;
+        continue;
       }
     }
 
@@ -205,14 +211,27 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue* queue, uint32_t packet_num,
   while (published_packet <  packet_num) {
     QueueProPop(queue, &storage_packet);
     LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
+
+    uint32_t packet_interval = GetPacketInterval(raw_packet->data_type);
+    int64_t packet_loss_threshold_lower = packet_interval + packet_interval / 2;
     timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
-    if (published_packet && \
-        ((timestamp - last_timestamp) > kMaxPacketTimeGap)) {
+    int64_t packet_gap = timestamp - last_timestamp;
+    if (published_packet && (packet_gap > packet_loss_threshold_lower)) {
       ROS_INFO("Lidar[%d] packet loss", handle);
-      break;
+      int64_t packet_loss_threshold_upper = packet_interval * packet_num;
+      if (packet_gap > packet_loss_threshold_upper) { // skip when gap is too large
+        break;
+      }
+      pcl::PointXYZI point = {0}; // fill zero points
+      for (uint32_t i = 0; i < storage_packet.point_num; i++) {
+        cloud->points.push_back(point);
+      }
+      last_timestamp = last_timestamp + packet_interval;
+      ++published_packet;
+      continue;
     }
     if (!published_packet) {
-      cloud->header.stamp = timestamp/1000.0; // to pcl ros time stamp
+      cloud->header.stamp = timestamp / 1000.0; // to pcl ros time stamp
     }
     cloud->width += storage_packet.point_num;
 
@@ -466,13 +485,13 @@ void Lddc::DistributeLidarData(void) {
 
 ros::Publisher* Lddc::GetCurrentPublisher(uint8_t handle) {
   ros::Publisher** pub = nullptr;
-  uint32_t queue_size = kMinEthPacketQueueSize * 4;
+  uint32_t queue_size = kMinEthPacketQueueSize;
 
   if (use_multi_topic_) {
     pub = &private_pub_[handle];
   } else {
     pub = &global_pub_;
-    queue_size = queue_size * 32;
+    queue_size = queue_size * 8;
   }
 
   if (*pub == nullptr) {
@@ -491,17 +510,17 @@ ros::Publisher* Lddc::GetCurrentPublisher(uint8_t handle) {
     if (kPointCloud2Msg == transfer_format_) {
       **pub = cur_node_->advertise<sensor_msgs::PointCloud2>(name_str,\
                                                              queue_size);
-      ROS_INFO("%s publish use PointCloud2 format, publisher queue size [%d]", \
+      ROS_INFO("%s publish use PointCloud2 format, set ROS publisher queue size %d", \
                name_str, queue_size);
     } else if (kLivoxCustomMsg == transfer_format_) {
       **pub = cur_node_->advertise<livox_ros_driver::CustomMsg>(name_str,\
                                                                 queue_size);
-      ROS_INFO("%s publish use livox custom format, publisher queue size [%d]", \
+      ROS_INFO("%s publish use livox custom format, set ROS publisher queue size %d", \
                name_str, queue_size);
     } else if (kPclPxyziMsg == transfer_format_) {
       **pub = cur_node_->advertise<PointCloud>(name_str,\
                                                queue_size);
-      ROS_INFO("%s publish use pcl PointXYZI format, publisher queue size [%d]", \
+      ROS_INFO("%s publish use pcl PointXYZI format, set ROS publisher queue size %d", \
                name_str, queue_size);
     }
   }
@@ -511,13 +530,13 @@ ros::Publisher* Lddc::GetCurrentPublisher(uint8_t handle) {
 
 ros::Publisher* Lddc::GetCurrentImuPublisher(uint8_t handle) {
   ros::Publisher** pub = nullptr;
-  uint32_t queue_size = kMinEthPacketQueueSize * 4;
+  uint32_t queue_size = kMinEthPacketQueueSize;
 
   if (use_multi_topic_) {
     pub = &private_imu_pub_[handle];
   } else {
     pub = &global_imu_pub_;
-    queue_size = queue_size * 32;
+    queue_size = queue_size * 4;
   }
 
   if (*pub == nullptr) {
@@ -534,7 +553,7 @@ ros::Publisher* Lddc::GetCurrentImuPublisher(uint8_t handle) {
 
     *pub = new ros::Publisher;
     **pub = cur_node_->advertise<sensor_msgs::Imu>(name_str, queue_size);
-    ROS_INFO("%s publish imu data, Publisher QueueSize[%d]", name_str, queue_size);
+    ROS_INFO("%s publish imu data, set ROS publisher queue size %d", name_str, queue_size);
   }
 
   return *pub;
