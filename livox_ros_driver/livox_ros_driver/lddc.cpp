@@ -122,7 +122,7 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue* queue, uint32_t packet_num, ui
   cloud.fields[5].name   = "line";
   cloud.fields[5].count  = 1;
   cloud.fields[5].datatype = sensor_msgs::PointField::UINT8;
-
+  
   cloud.data.resize(packet_num * kMaxPointPerEthPacket * sizeof(LivoxPointXyzrtl));
   cloud.point_step    = sizeof(LivoxPointXyzrtl);
   uint8_t *point_base = cloud.data.data();
@@ -136,9 +136,11 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue* queue, uint32_t packet_num, ui
     int64_t packet_loss_threshold_lower = packet_interval + packet_interval / 2;
     timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
     int64_t packet_gap = timestamp - last_timestamp;
-    if (published_packet && (packet_gap > packet_loss_threshold_lower)) {
+    if (published_packet && (packet_gap > packet_loss_threshold_lower) && \
+        lds_->lidars_[handle].data_is_pubulished) {
+       ROS_INFO("Lidar[%d] packet loss, interval is %ldus", handle, packet_gap);
        if (kSourceLvxFile != data_source) {
-        ROS_INFO("Lidar[%d] packet loss %ld", handle, packet_loss_threshold_lower);
+        //ROS_INFO("Lidar[%d] packet loss %ld %d %d", handle, packet_loss_threshold_lower, packet_interval, raw_packet->data_type);
         int64_t packet_loss_threshold_upper = packet_interval * packet_num;
         if (packet_gap > packet_loss_threshold_upper) { // skip when gap is too large
           break;
@@ -190,6 +192,10 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue* queue, uint32_t packet_num, ui
     }
   }
 
+  if (!lds_->lidars_[handle].data_is_pubulished) {
+    lds_->lidars_[handle].data_is_pubulished = true;
+  }
+
   return published_packet;
 }
 
@@ -216,8 +222,9 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue* queue, uint32_t packet_num,
     int64_t packet_loss_threshold_lower = packet_interval + packet_interval / 2;
     timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
     int64_t packet_gap = timestamp - last_timestamp;
-    if (published_packet && (packet_gap > packet_loss_threshold_lower)) {
-      ROS_INFO("Lidar[%d] packet loss", handle);
+    if ((packet_gap > packet_loss_threshold_lower) && published_packet && \
+        lds_->lidars_[handle].data_is_pubulished) {
+      ROS_INFO("Lidar[%d] packet loss, interval is %ldus", handle, packet_gap);
       int64_t packet_loss_threshold_upper = packet_interval * packet_num;
       if (packet_gap > packet_loss_threshold_upper) { // skip when gap is too large
         break;
@@ -276,6 +283,10 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue* queue, uint32_t packet_num,
     }
   }
 
+  if (!lds_->lidars_[handle].data_is_pubulished) {
+    lds_->lidars_[handle].data_is_pubulished = true;
+  }
+
   return published_packet;
 }
 
@@ -310,8 +321,8 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue* queue, uint32_t packet_nu
     }
 
     timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
-    if (published_packet && \
-        ((timestamp - last_timestamp) > kDeviceDisconnectThreshold)) {
+    if (((timestamp - last_timestamp) > kDeviceDisconnectThreshold) && \
+        published_packet && lds_->lidars_[handle].data_is_pubulished) {
       ROS_INFO("Lidar[%d] packet loss", handle);
       break;
     }
@@ -373,6 +384,10 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue* queue, uint32_t packet_nu
     }
   }
 
+  if (!lds_->lidars_[handle].data_is_pubulished) {
+    lds_->lidars_[handle].data_is_pubulished = true;
+  }
+
   return published_packet;
 }
 
@@ -389,8 +404,10 @@ uint32_t Lddc::PublishImuData(LidarDataQueue* queue, uint32_t packet_num,
   QueueProPop(queue, &storage_packet);
   LivoxEthPacket* raw_packet = reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
   timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
-  imu_data.header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
-
+  if (timestamp >= 0) {
+    imu_data.header.stamp = ros::Time(timestamp/1000000000.0); // to ros time stamp
+  }
+  
   uint8_t point_buf[2048];
   LivoxImuDataProcess(point_buf, raw_packet);
 

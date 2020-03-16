@@ -61,6 +61,7 @@ class LdsLvx : public Lds {
 
   void ReadLvxFile();
   bool IsAllQueueEmpty();
+  bool IsAllQueueReadStop();
 
   volatile bool is_initialized_;
   OutPacketBuffer packets_of_frame_;

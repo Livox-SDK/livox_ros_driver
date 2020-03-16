@@ -187,8 +187,15 @@ void LdsLvx::ReadLvxFile() {
     }
   }
 
-  while(IsAllQueueEmpty()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  int32_t wait_cnt = 10;
+  while(!IsAllQueueEmpty()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    if (IsAllQueueReadStop()) {
+      --wait_cnt;
+      if (wait_cnt <= 0) {
+        break;
+      }
+    }
   }
   RequestExit();
 }
@@ -197,6 +204,19 @@ bool LdsLvx::IsAllQueueEmpty() {
   for (int i=0; i<lidar_count_; i++) {
     LidarDevice* p_lidar = &lidars_[i];
     if (!QueueIsEmpty(&p_lidar->data)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool LdsLvx::IsAllQueueReadStop() {
+  static uint32_t remain_size[kMaxSourceLidar];
+  for (int i=0; i<lidar_count_; i++) {
+    LidarDevice* p_lidar = &lidars_[i];
+    if (remain_size[i] != QueueIsEmpty(&p_lidar->data)) {
+      remain_size[i] = QueueIsEmpty(&p_lidar->data);
       return false;
     }
   }

@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
   int xfer_format = kPointCloud2Msg;
   int multi_topic = 0;
   int data_src    = kSourceRawLidar;
-  double publish_freq = 50.0; /* Hz */
+  double publish_freq = 20.0; /* Hz */
   int output_type = kOutputToRos;
 
   livox_node.getParam("xfer_format", xfer_format);
@@ -149,7 +149,11 @@ int main(int argc, char **argv) {
   }
 
   ros::Time::init();
-  ros::Rate r(publish_freq);
+  double poll_freq = publish_freq;
+  if (data_src == kSourceLvxFile) {
+    poll_freq = 2000;
+  }
+  ros::Rate r(poll_freq);
   while (ros::ok()) {
     lddc->DistributeLidarData();
     r.sleep();

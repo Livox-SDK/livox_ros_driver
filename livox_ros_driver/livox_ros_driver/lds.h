@@ -167,6 +167,7 @@ typedef struct {
 typedef struct {
   uint8_t handle;               /**< Lidar access handle. */
   uint8_t data_src;             /**< From raw lidar or livox file. */
+  bool data_is_pubulished;      /**< Indicate the data of lidar whether is pubulished. */
   volatile LidarConnectState connect_state;
   DeviceInfo info;
   LidarPacketStatistic statistic_info;

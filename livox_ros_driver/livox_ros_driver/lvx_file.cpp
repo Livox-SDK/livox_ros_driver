@@ -159,6 +159,7 @@ int LvxFileHandle::Open(const char* filename,std::ios_base::openmode mode) {
 
     size_ = lvx_file_.tellg();
     lvx_file_.seekg (0, std::ios::beg);
+    printf("Filesize %lu\n", size_);
 
     if (size_ < MiniFileSize()) {
       state_ = kLvxFileSizeFault;
@@ -307,6 +308,13 @@ int LvxFileHandle::GetPacketsOfFrame(OutPacketBuffer* packets_of_frame) {
     state_ = kLvxFileAtEnd;
     return kLvxFileAtEnd;
   }
+  
+  uint64_t tmp_size = lvx_file_.tellg();
+  if (tmp_size >= size_) {
+    printf("At the file end %lu\n", tmp_size);
+    state_ = kLvxFileAtEnd;
+    return kLvxFileAtEnd;
+  }
 
   FrameHeader frame_header;
   FrameHeaderV0 frame_header_v0;
@@ -334,7 +342,6 @@ int LvxFileHandle::GetPacketsOfFrame(OutPacketBuffer* packets_of_frame) {
     packets_of_frame->data_size = DataSizeOfFrame(frame_header_v0);
     read_length = packets_of_frame->data_size;
   }
-
   lvx_file_.read((char *)(packets_of_frame->packet), read_length);
   if (lvx_file_) {
     return kLvxFileOk;
