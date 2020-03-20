@@ -24,30 +24,29 @@
 
 #include "timesync.h"
 
+#include <chrono>
+#include <functional>
 #include <stdint.h>
 #include <string.h>
 #include <thread>
-#include <chrono>
-#include <functional>
 
 namespace livox_ros {
 using namespace std;
 
-TimeSync::TimeSync() : exit_poll_state_(false), start_poll_state_(false),
-    exit_poll_data_(false), start_poll_data_(false) {
+TimeSync::TimeSync()
+    : exit_poll_state_(false), start_poll_state_(false), exit_poll_data_(false),
+      start_poll_data_(false) {
   fsm_state_ = kOpenDev;
-  uart_  = nullptr;
-  comm_  = nullptr;
+  uart_ = nullptr;
+  comm_ = nullptr;
   fn_cb_ = nullptr;
   client_data_ = nullptr;
   rx_bytes_ = 0;
 }
 
-TimeSync::~TimeSync() {
-  DeInitTimeSync();
-}
+TimeSync::~TimeSync() { DeInitTimeSync(); }
 
-int32_t TimeSync::InitTimeSync(const TimeSyncConfig& config) {
+int32_t TimeSync::InitTimeSync(const TimeSyncConfig &config) {
   config_ = config;
 
   if (config_.dev_config.type == kCommDevUart) {
@@ -68,8 +67,10 @@ int32_t TimeSync::InitTimeSync(const TimeSyncConfig& config) {
   config_.protocol_config.type = kGps;
   comm_ = new CommProtocol(config_.protocol_config);
 
-  t_poll_state_ = std::make_shared<std::thread>(std::bind(&TimeSync::PollStateLoop, this));
-  t_poll_data_  = std::make_shared<std::thread>(std::bind(&TimeSync::PollDataLoop, this));
+  t_poll_state_ =
+      std::make_shared<std::thread>(std::bind(&TimeSync::PollStateLoop, this));
+  t_poll_data_ =
+      std::make_shared<std::thread>(std::bind(&TimeSync::PollDataLoop, this));
 
   return 0;
 }
@@ -77,8 +78,10 @@ int32_t TimeSync::InitTimeSync(const TimeSyncConfig& config) {
 int32_t TimeSync::DeInitTimeSync() {
   StopTimesync();
 
-  if (uart_) delete uart_;
-  if (comm_) delete comm_;
+  if (uart_)
+    delete uart_;
+  if (comm_)
+    delete comm_;
 
   fn_cb_ = nullptr;
   client_data_ = nullptr;
@@ -87,9 +90,9 @@ int32_t TimeSync::DeInitTimeSync() {
 
 void TimeSync::StopTimesync() {
   start_poll_state_ = false;
-  start_poll_data_  = false;
-  exit_poll_state_  = true;
-  exit_poll_data_   = true;
+  start_poll_data_ = false;
+  exit_poll_state_ = true;
+  exit_poll_data_ = true;
   if (t_poll_state_) {
     t_poll_state_->join();
     t_poll_state_ = nullptr;
@@ -97,7 +100,7 @@ void TimeSync::StopTimesync() {
 
   if (t_poll_state_) {
     t_poll_data_->join();
-    t_poll_data_  = nullptr;
+    t_poll_data_ = nullptr;
   }
 }
 
@@ -107,7 +110,7 @@ void TimeSync::PollStateLoop() {
   }
 
   while (!exit_poll_state_) {
-    if(fsm_state_ == kOpenDev) {
+    if (fsm_state_ == kOpenDev) {
       FsmOpenDev();
     } else if (fsm_state_ == kPrepareDev) {
       FsmPrepareDev();
@@ -137,7 +140,7 @@ void TimeSync::PollDataLoop() {
           memset(&packet, 0, sizeof(packet));
           while ((kParseSuccess == comm_->ParseCommStream(&packet))) {
             if ((fn_cb_ != nullptr) || (client_data_ != nullptr)) {
-              fn_cb_((const char*)packet.data, packet.data_len, client_data_);
+              fn_cb_((const char *)packet.data, packet.data_len, client_data_);
             }
           }
         }
@@ -149,8 +152,8 @@ void TimeSync::PollDataLoop() {
 }
 
 void TimeSync::FsmTransferState(uint8_t new_state) {
-  if(new_state < kFsmDevUndef) {
-      fsm_state_ = new_state;
+  if (new_state < kFsmDevUndef) {
+    fsm_state_ = new_state;
   }
   transfer_time_ = chrono::steady_clock::now();
 }
@@ -167,7 +170,8 @@ void TimeSync::FsmOpenDev() {
 
 void TimeSync::FsmPrepareDev() {
   chrono::steady_clock::time_point t = chrono::steady_clock::now();
-  chrono::milliseconds time_gap = chrono::duration_cast<chrono::milliseconds>(t-transfer_time_);
+  chrono::milliseconds time_gap =
+      chrono::duration_cast<chrono::milliseconds>(t - transfer_time_);
   /** delay some time when device is opened, 4s */
   if (time_gap.count() > 3000) {
     FsmTransferState(kCheckDevState);
@@ -179,7 +183,8 @@ void TimeSync::FsmCheckDevState() {
   static chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
 
   chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
-  chrono::milliseconds time_gap = chrono::duration_cast<chrono::milliseconds>(t2 - t1);
+  chrono::milliseconds time_gap =
+      chrono::duration_cast<chrono::milliseconds>(t2 - t1);
 
   if (time_gap.count() > 2000) { /* period : 2.5s */
     if (last_rx_bytes == rx_bytes_) {
@@ -192,4 +197,4 @@ void TimeSync::FsmCheckDevState() {
   }
 }
 
-}
+} // namespace livox_ros

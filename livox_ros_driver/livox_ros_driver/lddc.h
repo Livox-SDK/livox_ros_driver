@@ -24,8 +24,8 @@
 #ifndef LIVOX_ROS_DRIVER_LDDC_H_
 #define LIVOX_ROS_DRIVER_LDDC_H_
 
-#include "livox_sdk.h"
 #include "lds.h"
+#include "livox_sdk.h"
 
 #include <ros/ros.h>
 #include <rosbag/bag.h>
@@ -44,34 +44,34 @@ public:
   Lddc(int format, int multi_topic, int data_src, int output_type, double frq);
   ~Lddc();
 
-  int RegisterLds(Lds* lds);
+  int RegisterLds(Lds *lds);
   void DistributeLidarData(void);
-  void CreateBagFile(const std::string& file_name);
+  void CreateBagFile(const std::string &file_name);
   void PrepareExit(void);
 
   uint8_t GetTransferFormat(void) { return transfer_format_; }
   uint8_t IsMultiTopic(void) { return use_multi_topic_; }
-  void SetRosNode(ros::NodeHandle* node) { cur_node_ = node; }
+  void SetRosNode(ros::NodeHandle *node) { cur_node_ = node; }
 
-  void SetRosPub(ros::Publisher* pub) { global_pub_ = pub; };
+  void SetRosPub(ros::Publisher *pub) { global_pub_ = pub; };
   void SetPublishFrq(uint32_t frq) { publish_frq_ = frq; }
 
-  Lds* lds_;
+  Lds *lds_;
 
 private:
-  uint32_t PublishPointcloud2(LidarDataQueue* queue, uint32_t packet_num, \
+  uint32_t PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
                               uint8_t handle);
-  uint32_t PublishPointcloudData(LidarDataQueue* queue, uint32_t packet_num, \
+  uint32_t PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
                                  uint8_t handle);
-  uint32_t PublishCustomPointcloud(LidarDataQueue* queue, uint32_t packet_num,\
+  uint32_t PublishCustomPointcloud(LidarDataQueue *queue, uint32_t packet_num,
                                    uint8_t handle);
-  uint32_t PublishImuData(LidarDataQueue* queue, uint32_t packet_num,\
+  uint32_t PublishImuData(LidarDataQueue *queue, uint32_t packet_num,
                           uint8_t handle);
 
-  ros::Publisher* GetCurrentPublisher(uint8_t handle);
-  ros::Publisher* GetCurrentImuPublisher(uint8_t handle);
-  void PollingLidarPointCloudData(uint8_t handle, LidarDevice* lidar);
-  void PollingLidarImuData(uint8_t handle, LidarDevice* lidar);
+  ros::Publisher *GetCurrentPublisher(uint8_t handle);
+  ros::Publisher *GetCurrentImuPublisher(uint8_t handle);
+  void PollingLidarPointCloudData(uint8_t handle, LidarDevice *lidar);
+  void PollingLidarImuData(uint8_t handle, LidarDevice *lidar);
 
   uint8_t transfer_format_;
   uint8_t use_multi_topic_;
@@ -79,14 +79,14 @@ private:
   uint8_t output_type_;
   double publish_frq_;
   int32_t publish_interval_ms_;
-  ros::Publisher* private_pub_[kMaxSourceLidar];
-  ros::Publisher* global_pub_;
-  ros::Publisher* private_imu_pub_[kMaxSourceLidar];
-  ros::Publisher* global_imu_pub_;
+  ros::Publisher *private_pub_[kMaxSourceLidar];
+  ros::Publisher *global_pub_;
+  ros::Publisher *private_imu_pub_[kMaxSourceLidar];
+  ros::Publisher *global_imu_pub_;
 
-  ros::NodeHandle* cur_node_;
-  rosbag::Bag* bag_;
+  ros::NodeHandle *cur_node_;
+  rosbag::Bag *bag_;
 };
 
-}
+} // namespace livox_ros
 #endif

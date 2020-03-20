@@ -25,22 +25,17 @@
 #ifndef TIMESYNC_TIMESYNC_H_
 #define TIMESYNC_TIMESYNC_H_
 
-#include <thread>
-#include "comm_protocol.h"
 #include "comm_device.h"
+#include "comm_protocol.h"
 #include "user_uart.h"
+#include <thread>
 
 namespace livox_ros {
 
-typedef void (*FnReceiveSyncTimeCb)(const char* rmc, uint32_t rmc_length, void* client_data);
+typedef void (*FnReceiveSyncTimeCb)(const char *rmc, uint32_t rmc_length,
+                                    void *client_data);
 
-
-enum FsmPollState {
-  kOpenDev,
-  kPrepareDev,
-  kCheckDevState,
-  kFsmDevUndef
-};
+enum FsmPollState { kOpenDev, kPrepareDev, kCheckDevState, kFsmDevUndef };
 
 typedef struct {
   CommDevConfig dev_config;
@@ -48,21 +43,21 @@ typedef struct {
 } TimeSyncConfig;
 
 class TimeSync {
- public:
-  static TimeSync* GetInstance() {
+public:
+  static TimeSync *GetInstance() {
     static TimeSync time_sync;
 
     return &time_sync;
   }
 
-  int32_t InitTimeSync(const TimeSyncConfig& config);
+  int32_t InitTimeSync(const TimeSyncConfig &config);
   int32_t DeInitTimeSync();
   void StartTimesync() {
     start_poll_state_ = true;
-    start_poll_data_  = true;
+    start_poll_data_ = true;
   }
 
-  int32_t SetReceiveSyncTimeCb(FnReceiveSyncTimeCb cb, void* data) {
+  int32_t SetReceiveSyncTimeCb(FnReceiveSyncTimeCb cb, void *data) {
     if ((cb != nullptr) || (data != nullptr)) {
       fn_cb_ = cb;
       client_data_ = data;
@@ -72,11 +67,11 @@ class TimeSync {
     }
   }
 
- private:
+private:
   TimeSync();
   ~TimeSync();
-  TimeSync(const TimeSync&) = delete;
-  TimeSync& operator=(const TimeSync&) = delete;
+  TimeSync(const TimeSync &) = delete;
+  TimeSync &operator=(const TimeSync &) = delete;
 
   void PollStateLoop();
   void PollDataLoop();
@@ -91,20 +86,20 @@ class TimeSync {
   volatile bool start_poll_data_;
 
   TimeSyncConfig config_;
-  UserUart* uart_;
-  CommProtocol* comm_;
+  UserUart *uart_;
+  CommProtocol *comm_;
   volatile uint32_t rx_bytes_;
 
   FnReceiveSyncTimeCb fn_cb_;
-  void* client_data_;
+  void *client_data_;
 
   volatile uint8_t fsm_state_;
-  std::chrono::steady_clock::time_point transfer_time_; 
+  std::chrono::steady_clock::time_point transfer_time_;
   void FsmTransferState(uint8_t new_state);
   void FsmOpenDev();
   void FsmPrepareDev();
   void FsmCheckDevState();
 };
 
-}
+} // namespace livox_ros
 #endif

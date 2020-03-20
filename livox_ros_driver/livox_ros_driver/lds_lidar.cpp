@@ -24,28 +24,31 @@
 
 #include "lds_lidar.h"
 
+#include <memory>
 #include <stdio.h>
 #include <string.h>
 #include <thread>
-#include <memory>
 
 #include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
 #include "rapidjson/filereadstream.h"
+#include "rapidjson/stringbuffer.h"
 
 namespace livox_ros {
 
-/** Const varible ------------------------------------------------------------------------------- */
+/** Const varible
+ * -------------------------------------------------------------------------------
+ */
 /** For callback use only */
-LdsLidar* g_lds_ldiar = nullptr;
+LdsLidar *g_lds_ldiar = nullptr;
 
+/** Global function for common use
+ * ---------------------------------------------------------------*/
 
-/** Global function for common use ---------------------------------------------------------------*/
-
-/** Lds lidar function ---------------------------------------------------------------------------*/
+/** Lds lidar function
+ * ---------------------------------------------------------------------------*/
 LdsLidar::LdsLidar(uint32_t interval_ms) : Lds(interval_ms, kSourceRawLidar) {
   auto_connect_mode_ = true;
-  is_initialized_    = false;
+  is_initialized_ = false;
 
   whitelist_count_ = 0;
   memset(broadcast_code_whitelist_, 0, sizeof(broadcast_code_whitelist_));
@@ -53,15 +56,11 @@ LdsLidar::LdsLidar(uint32_t interval_ms) : Lds(interval_ms, kSourceRawLidar) {
   ResetLdsLidar();
 }
 
-LdsLidar::~LdsLidar() {
+LdsLidar::~LdsLidar() {}
 
-}
+void LdsLidar::ResetLdsLidar(void) { ResetLds(kSourceRawLidar); }
 
-void LdsLidar::ResetLdsLidar(void) {
-  ResetLds(kSourceRawLidar);
-}
-
-int LdsLidar::InitLdsLidar(std::vector<std::string>& broadcast_code_strs,\
+int LdsLidar::InitLdsLidar(std::vector<std::string> &broadcast_code_strs,
                            const char *user_config_path) {
   if (is_initialized_) {
     printf("LiDAR data source is already inited!\n");
@@ -76,7 +75,8 @@ int LdsLidar::InitLdsLidar(std::vector<std::string>& broadcast_code_strs,\
 
   LivoxSdkVersion _sdkversion;
   GetLivoxSdkVersion(&_sdkversion);
-  printf("Livox SDK version %d.%d.%d\n", _sdkversion.major, _sdkversion.minor, _sdkversion.patch);
+  printf("Livox SDK version %d.%d.%d\n", _sdkversion.major, _sdkversion.minor,
+         _sdkversion.patch);
 
   SetBroadcastCallback(OnDeviceBroadcast);
   SetDeviceStateUpdateCallback(OnDeviceChange);
@@ -93,12 +93,13 @@ int LdsLidar::InitLdsLidar(std::vector<std::string>& broadcast_code_strs,\
     printf("Disable auto connect mode!\n");
 
     printf("List all broadcast code in whiltelist:\n");
-    for (uint32_t i=0; i<whitelist_count_; i++) {
+    for (uint32_t i = 0; i < whitelist_count_; i++) {
       printf("%s\n", broadcast_code_whitelist_[i]);
     }
   } else {
     EnableAutoConnectMode();
-    printf("No broadcast code was added to whitelist, swith to automatic connection mode!\n");
+    printf("No broadcast code was added to whitelist, swith to automatic "
+           "connection mode!\n");
   }
 
   if (enable_timesync_) {
@@ -127,7 +128,7 @@ int LdsLidar::InitLdsLidar(std::vector<std::string>& broadcast_code_strs,\
   if (g_lds_ldiar == nullptr) {
     g_lds_ldiar = this;
   }
-  is_initialized_= true;
+  is_initialized_ = true;
   printf("Livox-SDK init success!\n");
 
   return 0;
@@ -150,67 +151,68 @@ int LdsLidar::DeInitLdsLidar(void) {
   return 0;
 }
 
-void LdsLidar::PrepareExit(void) {
-  DeInitLdsLidar();
-}
+void LdsLidar::PrepareExit(void) { DeInitLdsLidar(); }
 
-/** Static function in LdsLidar for callback or event process ------------------------------------*/
+/** Static function in LdsLidar for callback or event process
+ * ------------------------------------*/
 
 /** Receiving point cloud data from Livox LiDAR. */
 void LdsLidar::OnLidarDataCb(uint8_t handle, LivoxEthPacket *data,
                              uint32_t data_num, void *client_data) {
   using namespace std;
 
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(client_data);
-  LivoxEthPacket* eth_packet = data;
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(client_data);
+  LivoxEthPacket *eth_packet = data;
 
   if (!data || !data_num || (handle >= kMaxLidarCount)) {
     return;
   }
 
-  LidarDevice* p_lidar = &lds_lidar->lidars_[handle];
+  LidarDevice *p_lidar = &lds_lidar->lidars_[handle];
   LidarPacketStatistic *packet_statistic = &p_lidar->statistic_info;
   LdsStamp cur_timestamp;
-  memcpy(cur_timestamp.stamp_bytes, eth_packet->timestamp, sizeof(cur_timestamp));
-
+  memcpy(cur_timestamp.stamp_bytes, eth_packet->timestamp,
+         sizeof(cur_timestamp));
 
   if (kImu != eth_packet->data_type) {
     if (eth_packet->timestamp_type == kTimestampTypePps) {
-      if ((cur_timestamp.stamp< packet_statistic->last_timestamp) && \
+      if ((cur_timestamp.stamp < packet_statistic->last_timestamp) &&
           (cur_timestamp.stamp < kPacketTimeGap)) { // whether a new sync frame
 
         auto cur_time = std::chrono::high_resolution_clock::now();
         int64_t sync_time = cur_time.time_since_epoch().count();
 
-        packet_statistic->timebase = sync_time;     // used receive time as timebase
+        packet_statistic->timebase = sync_time; // used receive time as timebase
       }
     }
     packet_statistic->last_timestamp = cur_timestamp.stamp;
 
     LidarDataQueue *p_queue = &p_lidar->data;
     if (nullptr == p_queue->storage_packet) {
-      uint32_t queue_size = CalculatePacketQueueSize(lds_lidar->buffer_time_ms_, \
+      uint32_t queue_size = CalculatePacketQueueSize(lds_lidar->buffer_time_ms_,
                                                      eth_packet->data_type);
       queue_size = queue_size * 16; /* 16 multiple the min size */
       InitQueue(p_queue, queue_size);
-      printf("Lidar%02d[%s] queue size : %d %d\n", p_lidar->handle, p_lidar->info.broadcast_code, \
-             queue_size, p_queue->size);
+      printf("Lidar%02d[%s] queue size : %d %d\n", p_lidar->handle,
+             p_lidar->info.broadcast_code, queue_size, p_queue->size);
     }
 
     if (!QueueIsFull(p_queue)) {
-      QueuePushAny(p_queue, (uint8_t *)eth_packet,\
-                   GetEthPacketLen(eth_packet->data_type), packet_statistic->timebase, \
+      QueuePushAny(p_queue, (uint8_t *)eth_packet,
+                   GetEthPacketLen(eth_packet->data_type),
+                   packet_statistic->timebase,
                    GetPointsPerPacket(eth_packet->data_type));
     }
   } else {
     if (eth_packet->timestamp_type == kTimestampTypePps) {
-      if ((cur_timestamp.stamp< packet_statistic->last_imu_timestamp) && \
+      if ((cur_timestamp.stamp < packet_statistic->last_imu_timestamp) &&
           (cur_timestamp.stamp < kPacketTimeGap)) { // whether a new sync frame
 
         auto cur_time = std::chrono::high_resolution_clock::now();
         int64_t sync_time = cur_time.time_since_epoch().count();
 
-        packet_statistic->imu_timebase = sync_time;     // used receive time as timebase
+        packet_statistic->imu_timebase =
+            sync_time; // used receive time as timebase
       }
     }
     packet_statistic->last_imu_timestamp = cur_timestamp.stamp;
@@ -219,13 +221,14 @@ void LdsLidar::OnLidarDataCb(uint8_t handle, LivoxEthPacket *data,
     if (nullptr == p_queue->storage_packet) {
       uint32_t queue_size = 256;
       InitQueue(p_queue, queue_size);
-      printf("Lidar%02d[%s] imu queue size : %d %d\n", p_lidar->handle, \
+      printf("Lidar%02d[%s] imu queue size : %d %d\n", p_lidar->handle,
              p_lidar->info.broadcast_code, queue_size, p_queue->size);
     }
 
-    if (!QueueIsFull(p_queue) && (cur_timestamp.stamp >= 0)) { 
-      QueuePushAny(p_queue, (uint8_t *)eth_packet,\
-                   GetEthPacketLen(eth_packet->data_type), packet_statistic->timebase, \
+    if (!QueueIsFull(p_queue) && (cur_timestamp.stamp >= 0)) {
+      QueuePushAny(p_queue, (uint8_t *)eth_packet,
+                   GetEthPacketLen(eth_packet->data_type),
+                   packet_statistic->timebase,
                    GetPointsPerPacket(eth_packet->data_type));
     }
   }
@@ -237,15 +240,17 @@ void LdsLidar::OnDeviceBroadcast(const BroadcastDeviceInfo *info) {
   }
 
   if (info->dev_type == kDeviceTypeHub) {
-    printf("In lidar mode, couldn't connect a hub : %s\n", info->broadcast_code);
+    printf("In lidar mode, couldn't connect a hub : %s\n",
+           info->broadcast_code);
     return;
   }
 
   if (g_lds_ldiar->IsAutoConnectMode()) {
-    printf("In automatic connection mode, will connect %s\n", info->broadcast_code);
+    printf("In automatic connection mode, will connect %s\n",
+           info->broadcast_code);
   } else {
     if (!g_lds_ldiar->IsBroadcastCodeExistInWhitelist(info->broadcast_code)) {
-      printf("Not in the whitelist, please add %s to if want to connect!\n",\
+      printf("Not in the whitelist, please add %s to if want to connect!\n",
              info->broadcast_code);
       return;
     }
@@ -257,25 +262,26 @@ void LdsLidar::OnDeviceBroadcast(const BroadcastDeviceInfo *info) {
   if (result == kStatusSuccess && handle < kMaxLidarCount) {
     SetDataCallback(handle, OnLidarDataCb, (void *)g_lds_ldiar);
 
-    LidarDevice* p_lidar = &(g_lds_ldiar->lidars_[handle]);
+    LidarDevice *p_lidar = &(g_lds_ldiar->lidars_[handle]);
     p_lidar->handle = handle;
     p_lidar->connect_state = kConnectStateOff;
 
     UserRawConfig config;
     if (g_lds_ldiar->GetRawConfig(info->broadcast_code, config)) {
       printf("Could not find raw config, set config to default!\n");
-      config.enable_fan     = 1;
-      config.return_mode    = kFirstReturn;
-      config.coordinate     = kCoordinateCartesian;
-      config.imu_rate       = kImuFreq200Hz;
+      config.enable_fan = 1;
+      config.return_mode = kFirstReturn;
+      config.coordinate = kCoordinateCartesian;
+      config.imu_rate = kImuFreq200Hz;
       config.extrinsic_parameter_source = kNoneExtrinsicParameter;
     }
 
-    p_lidar->config.enable_fan  = config.enable_fan;
+    p_lidar->config.enable_fan = config.enable_fan;
     p_lidar->config.return_mode = config.return_mode;
-    p_lidar->config.coordinate  = config.coordinate;
+    p_lidar->config.coordinate = config.coordinate;
     p_lidar->config.imu_rate = config.imu_rate;
-    p_lidar->config.extrinsic_parameter_source = config.extrinsic_parameter_source;
+    p_lidar->config.extrinsic_parameter_source =
+        config.extrinsic_parameter_source;
   } else {
     printf("Add lidar to connect is failed : %d %d \n", result, handle);
   }
@@ -292,7 +298,7 @@ void LdsLidar::OnDeviceChange(const DeviceInfo *info, DeviceEvent type) {
     return;
   }
 
-  LidarDevice* p_lidar = &(g_lds_ldiar->lidars_[handle]);
+  LidarDevice *p_lidar = &(g_lds_ldiar->lidars_[handle]);
   if (type == kEventConnect) {
     QueryDeviceInformation(handle, DeviceInformationCb, g_lds_ldiar);
     if (p_lidar->connect_state == kConnectStateOff) {
@@ -307,10 +313,9 @@ void LdsLidar::OnDeviceChange(const DeviceInfo *info, DeviceEvent type) {
   }
 
   if (p_lidar->connect_state == kConnectStateOn) {
-    printf("Lidar[%s] status_code[%d] working state[%d] feature[%d]\n", \
-           p_lidar->info.broadcast_code,\
-           p_lidar->info.status.status_code.error_code,\
-           p_lidar->info.state,\
+    printf("Lidar[%s] status_code[%d] working state[%d] feature[%d]\n",
+           p_lidar->info.broadcast_code,
+           p_lidar->info.status.status_code.error_code, p_lidar->info.state,
            p_lidar->info.feature);
     SetErrorMessageCallback(handle, LidarErrorStatusCb);
 
@@ -324,19 +329,22 @@ void LdsLidar::OnDeviceChange(const DeviceInfo *info, DeviceEvent type) {
       p_lidar->config.set_bits |= kConfigCoordinate;
 
       if (kDeviceTypeLidarMid40 != info->type) {
-        LidarSetPointCloudReturnMode(handle, (PointCloudReturnMode)(p_lidar->config.return_mode),\
-                                     SetPointCloudReturnModeCb, g_lds_ldiar);
+        LidarSetPointCloudReturnMode(
+            handle, (PointCloudReturnMode)(p_lidar->config.return_mode),
+            SetPointCloudReturnModeCb, g_lds_ldiar);
         p_lidar->config.set_bits |= kConfigReturnMode;
       }
 
       if (kDeviceTypeLidarMid40 != info->type) {
-        LidarSetImuPushFrequency(handle, (ImuFreq)(p_lidar->config.imu_rate),\
+        LidarSetImuPushFrequency(handle, (ImuFreq)(p_lidar->config.imu_rate),
                                  SetImuRatePushFrequencyCb, g_lds_ldiar);
         p_lidar->config.set_bits |= kConfigImuRate;
       }
 
-      if (p_lidar->config.extrinsic_parameter_source == kExtrinsicParameterFromLidar) {
-        LidarGetExtrinsicParameter(handle, GetLidarExtrinsicParameterCb, g_lds_ldiar);
+      if (p_lidar->config.extrinsic_parameter_source ==
+          kExtrinsicParameterFromLidar) {
+        LidarGetExtrinsicParameter(handle, GetLidarExtrinsicParameterCb,
+                                   g_lds_ldiar);
       }
 
       p_lidar->connect_state = kConnectStateConfig;
@@ -345,22 +353,22 @@ void LdsLidar::OnDeviceChange(const DeviceInfo *info, DeviceEvent type) {
 }
 
 /** Query the firmware version of Livox LiDAR. */
-void LdsLidar::DeviceInformationCb(livox_status status, uint8_t handle, \
-    DeviceInformationResponse *ack, void *clent_data) {
+void LdsLidar::DeviceInformationCb(livox_status status, uint8_t handle,
+                                   DeviceInformationResponse *ack,
+                                   void *clent_data) {
   if (status != kStatusSuccess) {
     printf("Device Query Informations Failed : %d\n", status);
   }
   if (ack) {
-    printf("firmware version: %d.%d.%d.%d\n",
-           ack->firmware_version[0],
-           ack->firmware_version[1],
-           ack->firmware_version[2],
+    printf("firmware version: %d.%d.%d.%d\n", ack->firmware_version[0],
+           ack->firmware_version[1], ack->firmware_version[2],
            ack->firmware_version[3]);
   }
 }
 
 /** Callback function of Lidar error message. */
-void LdsLidar::LidarErrorStatusCb(livox_status status, uint8_t handle, ErrorMessage *message) {
+void LdsLidar::LidarErrorStatusCb(livox_status status, uint8_t handle,
+                                  ErrorMessage *message) {
   static uint32_t error_message_count = 0;
   if (message != NULL) {
     ++error_message_count;
@@ -375,25 +383,24 @@ void LdsLidar::LidarErrorStatusCb(livox_status status, uint8_t handle, ErrorMess
       printf("fan_status : %u\n", message->lidar_error_code.fan_status);
       printf("self_heating : %u\n", message->lidar_error_code.self_heating);
       printf("ptp_status : %u\n", message->lidar_error_code.ptp_status);
-      printf("time_sync_status : %u\n", message->lidar_error_code.time_sync_status);
+      printf("time_sync_status : %u\n",
+             message->lidar_error_code.time_sync_status);
       printf("system_status : %u\n", message->lidar_error_code.system_status);
     }
   }
 }
 
-void LdsLidar::ControlFanCb(livox_status status, uint8_t handle, \
-                            uint8_t response, void *clent_data) {
+void LdsLidar::ControlFanCb(livox_status status, uint8_t handle,
+                            uint8_t response, void *clent_data) {}
 
-}
-
-void LdsLidar::SetPointCloudReturnModeCb(livox_status status, uint8_t handle, \
+void LdsLidar::SetPointCloudReturnModeCb(livox_status status, uint8_t handle,
                                          uint8_t response, void *clent_data) {
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(clent_data);
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(clent_data);
 
   if (handle >= kMaxLidarCount) {
     return;
   }
-  LidarDevice* p_lidar = &(lds_lidar->lidars_[handle]);
+  LidarDevice *p_lidar = &(lds_lidar->lidars_[handle]);
 
   if (status == kStatusSuccess) {
     p_lidar->config.set_bits &= ~((uint32_t)(kConfigReturnMode));
@@ -405,28 +412,29 @@ void LdsLidar::SetPointCloudReturnModeCb(livox_status status, uint8_t handle, \
     }
 
   } else {
-    LidarSetPointCloudReturnMode(handle, (PointCloudReturnMode)(p_lidar->config.return_mode),\
-                                 SetPointCloudReturnModeCb, lds_lidar);
+    LidarSetPointCloudReturnMode(
+        handle, (PointCloudReturnMode)(p_lidar->config.return_mode),
+        SetPointCloudReturnModeCb, lds_lidar);
     printf("Set return mode fail, try again!\n");
   }
 }
 
-void LdsLidar::SetCoordinateCb(livox_status status, uint8_t handle, \
+void LdsLidar::SetCoordinateCb(livox_status status, uint8_t handle,
                                uint8_t response, void *clent_data) {
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(clent_data);
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(clent_data);
 
   if (handle >= kMaxLidarCount) {
     return;
   }
-  LidarDevice* p_lidar = &(lds_lidar->lidars_[handle]);
+  LidarDevice *p_lidar = &(lds_lidar->lidars_[handle]);
 
   if (status == kStatusSuccess) {
     p_lidar->config.set_bits &= ~((uint32_t)(kConfigCoordinate));
     printf("Set coordinate success!\n");
 
     if (!p_lidar->config.set_bits) {
-       LidarStartSampling(handle, StartSampleCb, lds_lidar);
-       p_lidar->connect_state = kConnectStateSampling;
+      LidarStartSampling(handle, StartSampleCb, lds_lidar);
+      p_lidar->connect_state = kConnectStateSampling;
     }
   } else {
     if (p_lidar->config.coordinate != 0) {
@@ -439,14 +447,14 @@ void LdsLidar::SetCoordinateCb(livox_status status, uint8_t handle, \
   }
 }
 
-void LdsLidar::SetImuRatePushFrequencyCb(livox_status status, uint8_t handle, \
+void LdsLidar::SetImuRatePushFrequencyCb(livox_status status, uint8_t handle,
                                          uint8_t response, void *clent_data) {
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(clent_data);
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(clent_data);
 
   if (handle >= kMaxLidarCount) {
     return;
   }
-  LidarDevice* p_lidar = &(lds_lidar->lidars_[handle]);
+  LidarDevice *p_lidar = &(lds_lidar->lidars_[handle]);
 
   if (status == kStatusSuccess) {
     p_lidar->config.set_bits &= ~((uint32_t)(kConfigImuRate));
@@ -458,28 +466,28 @@ void LdsLidar::SetImuRatePushFrequencyCb(livox_status status, uint8_t handle, \
     }
 
   } else {
-    LidarSetImuPushFrequency(handle, (ImuFreq)(p_lidar->config.imu_rate),\
+    LidarSetImuPushFrequency(handle, (ImuFreq)(p_lidar->config.imu_rate),
                              SetImuRatePushFrequencyCb, g_lds_ldiar);
     printf("Set imu rate fail, try again!\n");
   }
-
 }
 
 /** Callback function of get LiDARs' extrinsic parameter. */
-void LdsLidar::GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle, \
+void LdsLidar::GetLidarExtrinsicParameterCb(
+    livox_status status, uint8_t handle,
     LidarGetExtrinsicParameterResponse *response, void *clent_data) {
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(clent_data);
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(clent_data);
   if (handle >= kMaxLidarCount) {
     return;
   }
 
   if (status == kStatusSuccess) {
     if (response != nullptr) {
-      printf("Lidar[%d] get ExtrinsicParameter status[%d] response[%d]\n", \
+      printf("Lidar[%d] get ExtrinsicParameter status[%d] response[%d]\n",
              handle, status, response->ret_code);
-      LidarDevice* p_lidar = &(lds_lidar->lidars_[handle]);
-      ExtrinsicParameter* p_extrinsic = &p_lidar->extrinsic_parameter;
-      p_extrinsic->euler[0] = static_cast<float>(response->roll* PI / 180.0);
+      LidarDevice *p_lidar = &(lds_lidar->lidars_[handle]);
+      ExtrinsicParameter *p_extrinsic = &p_lidar->extrinsic_parameter;
+      p_extrinsic->euler[0] = static_cast<float>(response->roll * PI / 180.0);
       p_extrinsic->euler[1] = static_cast<float>(response->pitch * PI / 180.0);
       p_extrinsic->euler[2] = static_cast<float>(response->yaw * PI / 180.0);
       p_extrinsic->trans[0] = static_cast<float>(response->x / 1000.0);
@@ -496,7 +504,7 @@ void LdsLidar::GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle,
         LidarStartSampling(handle, StartSampleCb, lds_lidar);
         p_lidar->connect_state = kConnectStateSampling;
       }
-    }  else {
+    } else {
       printf("Lidar[%d] get ExtrinsicParameter fail!\n", handle);
     }
   } else if (status == kStatusTimeout) {
@@ -504,65 +512,65 @@ void LdsLidar::GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle,
   }
 }
 
-
 /** Callback function of starting sampling. */
-void LdsLidar::StartSampleCb(livox_status status, uint8_t handle, \
+void LdsLidar::StartSampleCb(livox_status status, uint8_t handle,
                              uint8_t response, void *clent_data) {
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(clent_data);
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(clent_data);
 
   if (handle >= kMaxLidarCount) {
     return;
   }
 
-  LidarDevice* p_lidar = &(lds_lidar->lidars_[handle]);
+  LidarDevice *p_lidar = &(lds_lidar->lidars_[handle]);
   if (status == kStatusSuccess) {
     if (response != 0) {
       p_lidar->connect_state = kConnectStateOn;
-      printf("Lidar start sample fail : state[%d] handle[%d] res[%d]\n", \
-             status, handle, response);
+      printf("Lidar start sample fail : state[%d] handle[%d] res[%d]\n", status,
+             handle, response);
     } else {
       printf("Lidar start sample success\n");
-   }
+    }
   } else if (status == kStatusTimeout) {
     p_lidar->connect_state = kConnectStateOn;
-    printf("Lidar start sample timeout : state[%d] handle[%d] res[%d]\n", \
+    printf("Lidar start sample timeout : state[%d] handle[%d] res[%d]\n",
            status, handle, response);
   }
 }
 
 /** Callback function of stopping sampling. */
-void LdsLidar::StopSampleCb(livox_status status, uint8_t handle, \
-                            uint8_t response, void *clent_data) {
-}
+void LdsLidar::StopSampleCb(livox_status status, uint8_t handle,
+                            uint8_t response, void *clent_data) {}
 
-void LdsLidar::SetRmcSyncTimeCb(livox_status status, uint8_t handle, \
-                                uint8_t response, void* client_data) {
+void LdsLidar::SetRmcSyncTimeCb(livox_status status, uint8_t handle,
+                                uint8_t response, void *client_data) {
   if (handle >= kMaxLidarCount) {
     return;
   }
-  printf("Set lidar[%d] sync time status[%d] response[%d]\n", handle, status, response);
+  printf("Set lidar[%d] sync time status[%d] response[%d]\n", handle, status,
+         response);
 }
 
-void LdsLidar::ReceiveSyncTimeCallback(const char* rmc, uint32_t rmc_length, void* client_data) {
-  LdsLidar* lds_lidar = static_cast<LdsLidar *>(client_data);
-  //std::unique_lock<std::mutex> lock(mtx);
-  LidarDevice* p_lidar = nullptr;
+void LdsLidar::ReceiveSyncTimeCallback(const char *rmc, uint32_t rmc_length,
+                                       void *client_data) {
+  LdsLidar *lds_lidar = static_cast<LdsLidar *>(client_data);
+  // std::unique_lock<std::mutex> lock(mtx);
+  LidarDevice *p_lidar = nullptr;
   for (uint8_t handle = 0; handle < kMaxLidarCount; handle++) {
     p_lidar = &(lds_lidar->lidars_[handle]);
-    if (p_lidar->connect_state == kConnectStateSampling && \
+    if (p_lidar->connect_state == kConnectStateSampling &&
         p_lidar->info.state == kLidarStateNormal) {
-      livox_status status = LidarSetRmcSyncTime(handle, rmc, rmc_length, \
+      livox_status status = LidarSetRmcSyncTime(handle, rmc, rmc_length,
                                                 SetRmcSyncTimeCb, lds_lidar);
       if (status != kStatusSuccess) {
-        printf("Set GPRMC synchronization time error code: %d.\n",status);
+        printf("Set GPRMC synchronization time error code: %d.\n", status);
       }
     }
   }
 }
 
 /** Add broadcast code to whitelist */
-int LdsLidar::AddBroadcastCodeToWhitelist(const char* broadcast_code) {
-  if (!broadcast_code || (strlen(broadcast_code) > kBroadcastCodeSize) || \
+int LdsLidar::AddBroadcastCodeToWhitelist(const char *broadcast_code) {
+  if (!broadcast_code || (strlen(broadcast_code) > kBroadcastCodeSize) ||
       (whitelist_count_ >= kMaxLidarCount)) {
     return -1;
   }
@@ -578,13 +586,14 @@ int LdsLidar::AddBroadcastCodeToWhitelist(const char* broadcast_code) {
   return 0;
 }
 
-bool LdsLidar::IsBroadcastCodeExistInWhitelist(const char* broadcast_code) {
+bool LdsLidar::IsBroadcastCodeExistInWhitelist(const char *broadcast_code) {
   if (!broadcast_code) {
     return false;
   }
 
-  for (uint32_t i=0; i<whitelist_count_; i++) {
-    if (strncmp(broadcast_code, broadcast_code_whitelist_[i], kBroadcastCodeSize) == 0) {
+  for (uint32_t i = 0; i < whitelist_count_; i++) {
+    if (strncmp(broadcast_code, broadcast_code_whitelist_[i],
+                kBroadcastCodeSize) == 0) {
       return true;
     }
   }
@@ -592,106 +601,125 @@ bool LdsLidar::IsBroadcastCodeExistInWhitelist(const char* broadcast_code) {
   return false;
 }
 
-int LdsLidar::ParseTimesyncConfig(rapidjson::Document& doc) {
+int LdsLidar::ParseTimesyncConfig(rapidjson::Document &doc) {
   do {
-    if (!doc.HasMember("timesync_config") || !doc["timesync_config"].IsObject()) break;
+    if (!doc.HasMember("timesync_config") || !doc["timesync_config"].IsObject())
+      break;
 
-    const rapidjson::Value& object = doc["timesync_config"];
-    if (!object.IsObject()) break;
+    const rapidjson::Value &object = doc["timesync_config"];
+    if (!object.IsObject())
+      break;
 
-    if(!object.HasMember("enable_timesync") || !object["enable_timesync"].IsBool()) break;
+    if (!object.HasMember("enable_timesync") ||
+        !object["enable_timesync"].IsBool())
+      break;
     enable_timesync_ = object["enable_timesync"].GetBool();
 
-    if(!object.HasMember("device_name") || !object["device_name"].IsString()) break;
+    if (!object.HasMember("device_name") || !object["device_name"].IsString())
+      break;
     std::string device_name = object["device_name"].GetString();
-    std::strncpy(timesync_config_.dev_config.name, device_name.c_str(),\
+    std::strncpy(timesync_config_.dev_config.name, device_name.c_str(),
                  sizeof(timesync_config_.dev_config.name));
 
-    if(!object.HasMember("comm_device_type") || !object["comm_device_type"].IsInt()) break;
+    if (!object.HasMember("comm_device_type") ||
+        !object["comm_device_type"].IsInt())
+      break;
     timesync_config_.dev_config.type = object["comm_device_type"].GetInt();
 
     if (timesync_config_.dev_config.type == kCommDevUart) {
-      if(!object.HasMember("baudrate_index") || !object["baudrate_index"].IsInt()) break;
-      timesync_config_.dev_config.config.uart.baudrate = object["baudrate_index"].GetInt();
+      if (!object.HasMember("baudrate_index") ||
+          !object["baudrate_index"].IsInt())
+        break;
+      timesync_config_.dev_config.config.uart.baudrate =
+          object["baudrate_index"].GetInt();
 
-      if(!object.HasMember("parity_index") || !object["parity_index"].IsInt()) break;
-      timesync_config_.dev_config.config.uart.parity = object["parity_index"].GetInt();
+      if (!object.HasMember("parity_index") || !object["parity_index"].IsInt())
+        break;
+      timesync_config_.dev_config.config.uart.parity =
+          object["parity_index"].GetInt();
     }
 
     if (enable_timesync_) {
       printf("Enable timesync : \n");
       if (timesync_config_.dev_config.type == kCommDevUart) {
-        printf("Uart[%s],baudrate index[%d],parity index[%d]\n", timesync_config_.dev_config.name,\
-               timesync_config_.dev_config.config.uart.baudrate,\
+        printf("Uart[%s],baudrate index[%d],parity index[%d]\n",
+               timesync_config_.dev_config.name,
+               timesync_config_.dev_config.config.uart.baudrate,
                timesync_config_.dev_config.config.uart.parity);
       }
     } else {
       printf("Disable timesync\n");
     }
     return 0;
-  }while(0);
+  } while (0);
 
   return -1;
 }
 
-
 /** Config file process */
-int LdsLidar::ParseConfigFile(const char* pathname) {
-  FILE* raw_file = std::fopen(pathname, "rb");
-  if(!raw_file) {
+int LdsLidar::ParseConfigFile(const char *pathname) {
+  FILE *raw_file = std::fopen(pathname, "rb");
+  if (!raw_file) {
     printf("Open json config file fail!\n");
     return -1;
   }
 
   char read_buffer[32768];
-  rapidjson::FileReadStream config_file(raw_file, read_buffer, sizeof(read_buffer));
+  rapidjson::FileReadStream config_file(raw_file, read_buffer,
+                                        sizeof(read_buffer));
 
   rapidjson::Document doc;
-  if(!doc.ParseStream(config_file).HasParseError()) {
-    if(doc.HasMember("lidar_config") && doc["lidar_config"].IsArray()) {
-      const rapidjson::Value& array = doc["lidar_config"];
+  if (!doc.ParseStream(config_file).HasParseError()) {
+    if (doc.HasMember("lidar_config") && doc["lidar_config"].IsArray()) {
+      const rapidjson::Value &array = doc["lidar_config"];
       size_t len = array.Size();
-      for(size_t i=0; i<len; i++) {
-        const rapidjson::Value& object = array[i];
-        if(object.IsObject()) {
+      for (size_t i = 0; i < len; i++) {
+        const rapidjson::Value &object = array[i];
+        if (object.IsObject()) {
           UserRawConfig config;
           memset(&config, 0, sizeof(config));
-          if(object.HasMember("broadcast_code") && object["broadcast_code"].IsString()) {
+          if (object.HasMember("broadcast_code") &&
+              object["broadcast_code"].IsString()) {
             std::string broadcast_code = object["broadcast_code"].GetString();
-            std::strncpy(config.broadcast_code, broadcast_code.c_str(),\
-                        sizeof(config.broadcast_code));
+            std::strncpy(config.broadcast_code, broadcast_code.c_str(),
+                         sizeof(config.broadcast_code));
           } else {
             printf("User config file parse error\n");
             continue;
           }
 
-          if(object.HasMember("enable_connect") && object["enable_connect"].IsBool()) {
+          if (object.HasMember("enable_connect") &&
+              object["enable_connect"].IsBool()) {
             config.enable_connect = object["enable_connect"].GetBool();
           }
-          if(object.HasMember("enable_fan") && object["enable_fan"].IsBool()) {
+          if (object.HasMember("enable_fan") && object["enable_fan"].IsBool()) {
             config.enable_fan = object["enable_fan"].GetBool();
           }
-          if(object.HasMember("return_mode") && object["return_mode"].IsInt()) {
+          if (object.HasMember("return_mode") &&
+              object["return_mode"].IsInt()) {
             config.return_mode = object["return_mode"].GetInt();
           }
-          if(object.HasMember("coordinate") && object["coordinate"].IsInt()) {
+          if (object.HasMember("coordinate") && object["coordinate"].IsInt()) {
             config.coordinate = object["coordinate"].GetInt();
           }
-          if(object.HasMember("imu_rate") && object["imu_rate"].IsInt()) {
+          if (object.HasMember("imu_rate") && object["imu_rate"].IsInt()) {
             config.imu_rate = object["imu_rate"].GetInt();
           }
-          if(object.HasMember("extrinsic_parameter_source") && \
-             object["extrinsic_parameter_source"].IsInt()) {
-            config.extrinsic_parameter_source = object["extrinsic_parameter_source"].GetInt();
+          if (object.HasMember("extrinsic_parameter_source") &&
+              object["extrinsic_parameter_source"].IsInt()) {
+            config.extrinsic_parameter_source =
+                object["extrinsic_parameter_source"].GetInt();
           }
 
-          printf("broadcast code[%s] : %d %d %d %d %d %d\n", config.broadcast_code, \
-                 config.enable_connect, config.enable_fan, config.return_mode,\
-                 config.coordinate, config.imu_rate, config.extrinsic_parameter_source);
+          printf("broadcast code[%s] : %d %d %d %d %d %d\n",
+                 config.broadcast_code, config.enable_connect,
+                 config.enable_fan, config.return_mode, config.coordinate,
+                 config.imu_rate, config.extrinsic_parameter_source);
           if (config.enable_connect) {
             if (!AddBroadcastCodeToWhitelist(config.broadcast_code)) {
               if (AddRawUserConfig(config)) {
-                printf("Raw config is already exist : %s \n", config.broadcast_code);
+                printf("Raw config is already exist : %s \n",
+                       config.broadcast_code);
               }
             }
           }
@@ -704,7 +732,8 @@ int LdsLidar::ParseConfigFile(const char* pathname) {
       enable_timesync_ = false;
     }
   } else {
-    printf("User config file parse error[%d]\n", doc.ParseStream(config_file).HasParseError());
+    printf("User config file parse error[%d]\n",
+           doc.ParseStream(config_file).HasParseError());
   }
 
   std::fclose(raw_file);
@@ -712,7 +741,7 @@ int LdsLidar::ParseConfigFile(const char* pathname) {
   return 0;
 }
 
-int LdsLidar::AddRawUserConfig(UserRawConfig& config) {
+int LdsLidar::AddRawUserConfig(UserRawConfig &config) {
   if (IsExistInRawConfig(config.broadcast_code)) {
     return -1;
   }
@@ -723,13 +752,14 @@ int LdsLidar::AddRawUserConfig(UserRawConfig& config) {
   return 0;
 }
 
-bool LdsLidar::IsExistInRawConfig(const char* broadcast_code) {
+bool LdsLidar::IsExistInRawConfig(const char *broadcast_code) {
   if (broadcast_code == nullptr) {
     return false;
   }
 
   for (auto ite_config : raw_config_) {
-    if (strncmp(ite_config.broadcast_code, broadcast_code, kBroadcastCodeSize) == 0) {
+    if (strncmp(ite_config.broadcast_code, broadcast_code,
+                kBroadcastCodeSize) == 0) {
       return true;
     }
   }
@@ -737,17 +767,18 @@ bool LdsLidar::IsExistInRawConfig(const char* broadcast_code) {
   return false;
 }
 
-int LdsLidar::GetRawConfig(const char* broadcast_code, UserRawConfig& config) {
+int LdsLidar::GetRawConfig(const char *broadcast_code, UserRawConfig &config) {
   if (broadcast_code == nullptr) {
     return -1;
   }
 
   for (auto ite_config : raw_config_) {
-    if (strncmp(ite_config.broadcast_code, broadcast_code, kBroadcastCodeSize) == 0) {
-      config.enable_fan  = ite_config.enable_fan;
+    if (strncmp(ite_config.broadcast_code, broadcast_code,
+                kBroadcastCodeSize) == 0) {
+      config.enable_fan = ite_config.enable_fan;
       config.return_mode = ite_config.return_mode;
-      config.coordinate  = ite_config.coordinate;
-      config.imu_rate    = ite_config.imu_rate;
+      config.coordinate = ite_config.coordinate;
+      config.imu_rate = ite_config.imu_rate;
       config.extrinsic_parameter_source = ite_config.extrinsic_parameter_source;
       return 0;
     }
@@ -756,4 +787,4 @@ int LdsLidar::GetRawConfig(const char* broadcast_code, UserRawConfig& config) {
   return -1;
 }
 
-}
+} // namespace livox_ros
