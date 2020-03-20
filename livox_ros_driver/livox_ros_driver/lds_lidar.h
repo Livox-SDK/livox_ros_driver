@@ -32,9 +32,8 @@
 
 #include "lds.h"
 #include "livox_sdk.h"
-#include "timesync.h"
 #include "rapidjson/document.h"
-
+#include "timesync.h"
 
 namespace livox_ros {
 
@@ -42,57 +41,65 @@ namespace livox_ros {
  * LiDAR data source, data from dependent lidar.
  */
 class LdsLidar : public Lds {
- public:
-  static LdsLidar* GetInstance(uint32_t interval_ms) {
+public:
+  static LdsLidar *GetInstance(uint32_t interval_ms) {
     static LdsLidar lds_lidar(interval_ms);
     return &lds_lidar;
   }
 
-  int InitLdsLidar(std::vector<std::string>& broadcast_code_strs, const char *user_config_path);
+  int InitLdsLidar(std::vector<std::string> &broadcast_code_strs,
+                   const char *user_config_path);
   int DeInitLdsLidar(void);
 
- private:
+private:
   LdsLidar(uint32_t interval_ms);
-  LdsLidar(const LdsLidar&) = delete;
+  LdsLidar(const LdsLidar &) = delete;
   ~LdsLidar();
-  LdsLidar& operator=(const LdsLidar&) = delete;
+  LdsLidar &operator=(const LdsLidar &) = delete;
   virtual void PrepareExit(void);
 
-  static void OnLidarDataCb(uint8_t handle, LivoxEthPacket *data,\
+  static void OnLidarDataCb(uint8_t handle, LivoxEthPacket *data,
                             uint32_t data_num, void *client_data);
   static void OnDeviceBroadcast(const BroadcastDeviceInfo *info);
   static void OnDeviceChange(const DeviceInfo *info, DeviceEvent type);
-  static void StartSampleCb(livox_status status, uint8_t handle, uint8_t response, void *clent_data);
-  static void StopSampleCb(livox_status status, uint8_t handle, uint8_t response, void *clent_data);
-  static void DeviceInformationCb(livox_status status, uint8_t handle, \
-                                  DeviceInformationResponse *ack, void *clent_data);
-  static void LidarErrorStatusCb(livox_status status, uint8_t handle, ErrorMessage *message);
-  static void ControlFanCb(livox_status status, uint8_t handle, \
+  static void StartSampleCb(livox_status status, uint8_t handle,
+                            uint8_t response, void *clent_data);
+  static void StopSampleCb(livox_status status, uint8_t handle,
                            uint8_t response, void *clent_data);
-  static void SetPointCloudReturnModeCb(livox_status status, uint8_t handle, \
+  static void DeviceInformationCb(livox_status status, uint8_t handle,
+                                  DeviceInformationResponse *ack,
+                                  void *clent_data);
+  static void LidarErrorStatusCb(livox_status status, uint8_t handle,
+                                 ErrorMessage *message);
+  static void ControlFanCb(livox_status status, uint8_t handle,
+                           uint8_t response, void *clent_data);
+  static void SetPointCloudReturnModeCb(livox_status status, uint8_t handle,
                                         uint8_t response, void *clent_data);
-  static void SetCoordinateCb(livox_status status, uint8_t handle, \
+  static void SetCoordinateCb(livox_status status, uint8_t handle,
                               uint8_t response, void *clent_data);
-  static void SetImuRatePushFrequencyCb(livox_status status, uint8_t handle, \
+  static void SetImuRatePushFrequencyCb(livox_status status, uint8_t handle,
                                         uint8_t response, void *clent_data);
-  static void SetRmcSyncTimeCb(livox_status status, uint8_t handle, \
-                               uint8_t response, void* client_data);
-  static void ReceiveSyncTimeCallback(const char* rmc, uint32_t rmc_length, void* client_data);
-  static void GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle, \
-                                           LidarGetExtrinsicParameterResponse *response, void *clent_data);
+  static void SetRmcSyncTimeCb(livox_status status, uint8_t handle,
+                               uint8_t response, void *client_data);
+  static void ReceiveSyncTimeCallback(const char *rmc, uint32_t rmc_length,
+                                      void *client_data);
+  static void
+  GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle,
+                               LidarGetExtrinsicParameterResponse *response,
+                               void *clent_data);
 
   void ResetLdsLidar(void);
-  int AddBroadcastCodeToWhitelist(const char* broadcast_code);
-  bool IsBroadcastCodeExistInWhitelist(const char* broadcast_code);
+  int AddBroadcastCodeToWhitelist(const char *broadcast_code);
+  bool IsBroadcastCodeExistInWhitelist(const char *broadcast_code);
 
   void EnableAutoConnectMode(void) { auto_connect_mode_ = true; }
   void DisableAutoConnectMode(void) { auto_connect_mode_ = false; }
   bool IsAutoConnectMode(void) { return auto_connect_mode_; }
-  int ParseTimesyncConfig(rapidjson::Document& doc);
-  int ParseConfigFile(const char* pathname);
-  int AddRawUserConfig(UserRawConfig& config);
-  bool IsExistInRawConfig(const char* broadcast_code);
-  int GetRawConfig(const char* broadcast_code, UserRawConfig& config);
+  int ParseTimesyncConfig(rapidjson::Document &doc);
+  int ParseConfigFile(const char *pathname);
+  int AddRawUserConfig(UserRawConfig &config);
+  bool IsExistInRawConfig(const char *broadcast_code);
+  int GetRawConfig(const char *broadcast_code, UserRawConfig &config);
 
   bool auto_connect_mode_;
   uint32_t whitelist_count_;
@@ -105,5 +112,5 @@ class LdsLidar : public Lds {
   TimeSyncConfig timesync_config_;
 };
 
-}
+} // namespace livox_ros
 #endif

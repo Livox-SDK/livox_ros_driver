@@ -24,19 +24,19 @@
 #ifndef LIVOX_FILE_H_
 #define LIVOX_FILE_H_
 
-#include <memory>
-#include <ios>
-#include <fstream>
-#include <list>
-#include <vector>
-#include <mutex>
 #include "livox_sdk.h"
+#include <fstream>
+#include <ios>
+#include <list>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 namespace livox_ros {
 
 #define kMaxPointSize 1500
 #define kDefaultFrameDurationTime 50
-const uint32_t kMaxFrameSize = 2048*1024;
+const uint32_t kMaxFrameSize = 2048 * 1024;
 
 typedef enum {
   kDeviceStateDisconnect = 0,
@@ -172,29 +172,31 @@ typedef struct {
 #pragma pack()
 
 class LvxFileHandle {
- public:
+public:
   LvxFileHandle();
   ~LvxFileHandle() = default;
 
-  int Open(const char* filename, std::ios_base::openmode mode);
+  int Open(const char *filename, std::ios_base::openmode mode);
   bool Eof();
 
   int InitLvxFile();
   void InitLvxFileHeader();
-  void SaveFrameToLvxFile(std::list<LvxFilePacket>& point_packet_list_temp);
-  void BasePointsHandle(LivoxEthPacket* data, LvxFilePacket& packet);
+  void SaveFrameToLvxFile(std::list<LvxFilePacket> &point_packet_list_temp);
+  void BasePointsHandle(LivoxEthPacket *data, LvxFilePacket &packet);
   void CloseLvxFile();
 
-  void AddDeviceInfo(LvxFileDeviceInfo& info) { device_info_list_.push_back(info); }
+  void AddDeviceInfo(LvxFileDeviceInfo &info) {
+    device_info_list_.push_back(info);
+  }
   int GetDeviceInfoListSize() { return device_info_list_.size(); }
   int GetDeviceCount() { return device_count_; }
-  int GetDeviceInfo(uint8_t idx,  LvxFileDeviceInfo* info);
+  int GetDeviceInfo(uint8_t idx, LvxFileDeviceInfo *info);
   int GetFileState(void) { return state_; };
-  int GetPacketsOfFrame(OutPacketBuffer* PacketsOfFrame);
+  int GetPacketsOfFrame(OutPacketBuffer *PacketsOfFrame);
   int GetLvxFileReadProgress();
   int GetFileVersion() { return file_ver_; }
 
- private:
+private:
   std::fstream lvx_file_;
   std::vector<LvxFileDeviceInfo> device_info_list_;
   uint8_t file_ver_;
@@ -219,16 +221,16 @@ class LvxFileHandle {
   bool AddAndCheckDeviceInfo();
   bool PrepareDataRead();
 
-  uint64_t DataSizeOfFrame(FrameHeader& frame_header) {
-    return (frame_header.next_offset - frame_header.current_offset - sizeof(frame_header));
+  uint64_t DataSizeOfFrame(FrameHeader &frame_header) {
+    return (frame_header.next_offset - frame_header.current_offset -
+            sizeof(frame_header));
   }
 
-  uint64_t DataSizeOfFrame(FrameHeaderV0& frame_header_v0) {
-    return (frame_header_v0.next_offset - frame_header_v0.current_offset - \
+  uint64_t DataSizeOfFrame(FrameHeaderV0 &frame_header_v0) {
+    return (frame_header_v0.next_offset - frame_header_v0.current_offset -
             sizeof(frame_header_v0));
   }
-
 };
 
-}
+} // namespace livox_ros
 #endif

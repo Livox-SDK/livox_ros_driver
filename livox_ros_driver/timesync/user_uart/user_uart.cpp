@@ -22,20 +22,19 @@
 // SOFTWARE.
 //
 
-
 #include "user_uart.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <termios.h>
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <termios.h>
+#include <unistd.h>
 
 namespace livox_ros {
 
-UserUart::UserUart(uint8_t baudrate_index, uint8_t parity):
-    baudrate_(baudrate_index), parity_(parity) {
+UserUart::UserUart(uint8_t baudrate_index, uint8_t parity)
+    : baudrate_(baudrate_index), parity_(parity) {
   fd_ = 0;
   is_open_ = false;
 }
@@ -44,14 +43,14 @@ UserUart::~UserUart() {
   is_open_ = false;
   if (fd_ > 0) {
     /** first we flush the port */
-    tcflush(fd_,TCOFLUSH);
-    tcflush(fd_,TCIFLUSH);
+    tcflush(fd_, TCOFLUSH);
+    tcflush(fd_, TCIFLUSH);
 
     close(fd_);
   }
 }
 
-int UserUart::Open(const char* filename) {
+int UserUart::Open(const char *filename) {
   fd_ = open(filename, O_RDWR | O_NOCTTY); //| O_NDELAY
   if (fd_ < 0) {
     printf("Open %s fail!\n", filename);
@@ -77,8 +76,8 @@ int UserUart::Close() {
   is_open_ = false;
   if (fd_ > 0) {
     /** first we flush the port */
-    tcflush(fd_,TCOFLUSH);
-    tcflush(fd_,TCIFLUSH);
+    tcflush(fd_, TCOFLUSH);
+    tcflush(fd_, TCIFLUSH);
     return close(fd_);
   }
 
@@ -87,11 +86,10 @@ int UserUart::Close() {
 
 /** sets up the port parameters */
 int UserUart::Setup(uint8_t baudrate_index, uint8_t parity) {
-  static uint32_t baud_map[19] = {\
-                                   B2400, B4800, B9600, B19200, B38400, B57600,B115200, B230400,\
-                                   B460800, B500000, B576000,B921600,B1152000, B1500000, B2000000,\
-                                   B2500000, B3000000, B3500000, B4000000\
-                                 };
+  static uint32_t baud_map[19] = {
+      B2400,    B4800,    B9600,    B19200,   B38400,  B57600,   B115200,
+      B230400,  B460800,  B500000,  B576000,  B921600, B1152000, B1500000,
+      B2000000, B2500000, B3000000, B3500000, B4000000};
   tcflag_t baudrate;
   struct termios options;
 
@@ -110,12 +108,12 @@ int UserUart::Setup(uint8_t baudrate_index, uint8_t parity) {
   options.c_cflag |= (CLOCAL | CREAD);
 
   /** Disable hardware flow */
-  //options.c_cflag &= ~CRTSCTS;
+  // options.c_cflag &= ~CRTSCTS;
 
   /** Disable software flow */
-  //options.c_iflag &= ~(IXON | IXOFF | IXANY);
+  // options.c_iflag &= ~(IXON | IXOFF | IXANY);
 
-  //options.c_oflag &= ~OPOST;
+  // options.c_oflag &= ~OPOST;
 
   /** set boadrate */
   options.c_cflag &= ~CBAUD;
@@ -123,45 +121,45 @@ int UserUart::Setup(uint8_t baudrate_index, uint8_t parity) {
   options.c_cflag |= baudrate;
 
   switch (parity) {
-    case P_8N1:
-      /** No parity (8N1)  */
-      options.c_cflag &= ~PARENB;
-      options.c_cflag &= ~CSTOPB;
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS8;
+  case P_8N1:
+    /** No parity (8N1)  */
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
     break;
-    case P_7E1:
-      /** Even parity (7E1) */
-      options.c_cflag |= PARENB;
-      options.c_cflag &= ~PARODD;
-      options.c_cflag &= ~CSTOPB;
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS7;
+  case P_7E1:
+    /** Even parity (7E1) */
+    options.c_cflag |= PARENB;
+    options.c_cflag &= ~PARODD;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS7;
     break;
-    case P_7O1:
-      /** Odd parity (7O1) */
-      options.c_cflag |= PARENB;
-      options.c_cflag |= PARODD;
-      options.c_cflag &= ~CSTOPB;
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS7;
+  case P_7O1:
+    /** Odd parity (7O1) */
+    options.c_cflag |= PARENB;
+    options.c_cflag |= PARODD;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS7;
     break;
-    case P_7S1:
-      /** Space parity is setup the same as no parity (7S1)  */
-      options.c_cflag &= ~PARENB;
-      options.c_cflag &= ~CSTOPB;
-      options.c_cflag &= ~CSIZE;
-      options.c_cflag |= CS8;
+  case P_7S1:
+    /** Space parity is setup the same as no parity (7S1)  */
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
     break;
-    default:
-      return -1;
+  default:
+    return -1;
   }
 
   /** now we setup the values in port's termios */
   options.c_iflag &= ~INPCK;
 
   /** Enable non-canonical */
-  //options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+  // options.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
 
   /** Time to wait for data */
   options.c_cc[VTIME] = 1;
@@ -194,5 +192,4 @@ ssize_t UserUart::Read(char *buffer, size_t size) {
   }
 }
 
-}
-
+} // namespace livox_ros

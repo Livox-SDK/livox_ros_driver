@@ -26,19 +26,19 @@
 #define USER_UART_H_
 
 #include <stdint.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <termios.h>
 
 namespace livox_ros {
 
 enum Parity {
-  P_8N1,    /* No parity (8N1)	*/
-  P_7E1,    /* Even parity (7E1)*/
-  P_7O1,    /* Odd parity (7O1)	*/
-  P_7S1,    /* Space parity is setup the same as no parity (7S1)	*/
+  P_8N1, /* No parity (8N1)	*/
+  P_7E1, /* Even parity (7E1)*/
+  P_7O1, /* Odd parity (7O1)	*/
+  P_7S1, /* Space parity is setup the same as no parity (7S1)	*/
   ParityUnkown
 };
 
@@ -67,7 +67,7 @@ enum BaudRate {
 
 class UserUart {
 
- public:
+public:
   UserUart(uint8_t baudrate_index, uint8_t parity);
   ~UserUart();
 
@@ -75,10 +75,10 @@ class UserUart {
   ssize_t Write(const char *buffer, size_t size);
   ssize_t Read(char *buffer, size_t size);
   int Close();
-  int Open(const char* filename);
+  int Open(const char *filename);
   bool IsOpen() { return is_open_; };
 
- private:
+private:
   int fd_;
   volatile bool is_open_;
 
@@ -86,7 +86,6 @@ class UserUart {
   uint8_t parity_;
 };
 
-}
+} // namespace livox_ros
 
 #endif
-

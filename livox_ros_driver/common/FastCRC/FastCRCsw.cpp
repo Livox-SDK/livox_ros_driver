@@ -37,19 +37,15 @@
 #include "FastCRC.h"
 #include "FastCRC_tables.hpp"
 
-
 // ================= 16-BIT CRC ===================
 /** Constructor
  */
-FastCRC16::FastCRC16(uint16_t seed) {
-  seed_ = seed;
-}
+FastCRC16::FastCRC16(uint16_t seed) { seed_ = seed; }
 
-#define crc_n4(crc, data, table) crc ^= data; \
-	crc = (table[(crc & 0xff) + 0x300]) ^		\
-	      (table[((crc >> 8) & 0xff) + 0x200]) ^	\
-	      (table[((data >> 16) & 0xff) + 0x100]) ^	\
-	      (table[data >> 24]);
+#define crc_n4(crc, data, table)                                               \
+  crc ^= data;                                                                 \
+  crc = (table[(crc & 0xff) + 0x300]) ^ (table[((crc >> 8) & 0xff) + 0x200]) ^ \
+        (table[((data >> 16) & 0xff) + 0x100]) ^ (table[data >> 24]);
 
 /** MCRF4XX
  * equivalent to _crc_ccitt_update() in crc16.h from avr_libc
@@ -60,49 +56,46 @@ FastCRC16::FastCRC16(uint16_t seed) {
 
 uint16_t FastCRC16::mcrf4xx_calc(const uint8_t *data, uint16_t len) {
 
-	uint16_t crc = seed_;
+  uint16_t crc = seed_;
 
-	while (((uintptr_t)data & 3) && len) {
-		crc = (crc >> 8) ^ crc_table_mcrf4xx[(crc & 0xff) ^ *data++];
-		len--;
-	}
+  while (((uintptr_t)data & 3) && len) {
+    crc = (crc >> 8) ^ crc_table_mcrf4xx[(crc & 0xff) ^ *data++];
+    len--;
+  }
 
-	while (len >= 16) {
-		len -= 16;
-		crc_n4(crc, ((uint32_t *)data)[0], crc_table_mcrf4xx);
-		crc_n4(crc, ((uint32_t *)data)[1], crc_table_mcrf4xx);
-		crc_n4(crc, ((uint32_t *)data)[2], crc_table_mcrf4xx);
-		crc_n4(crc, ((uint32_t *)data)[3], crc_table_mcrf4xx);
-		data += 16;
-	}
+  while (len >= 16) {
+    len -= 16;
+    crc_n4(crc, ((uint32_t *)data)[0], crc_table_mcrf4xx);
+    crc_n4(crc, ((uint32_t *)data)[1], crc_table_mcrf4xx);
+    crc_n4(crc, ((uint32_t *)data)[2], crc_table_mcrf4xx);
+    crc_n4(crc, ((uint32_t *)data)[3], crc_table_mcrf4xx);
+    data += 16;
+  }
 
-	while (len--) {
-		crc = (crc >> 8) ^ crc_table_mcrf4xx[(crc & 0xff) ^ *data++];
-	}
+  while (len--) {
+    crc = (crc >> 8) ^ crc_table_mcrf4xx[(crc & 0xff) ^ *data++];
+  }
 
-	//seed = crc;
-	return crc;
+  // seed = crc;
+  return crc;
 }
-
 
 // ================= 32-BIT CRC ===================
 /** Constructor
  */
-FastCRC32::FastCRC32(uint32_t seed) {
-  seed_ = seed;
-}
+FastCRC32::FastCRC32(uint32_t seed) { seed_ = seed; }
 
-#define crc_n4d(crc, data, table) crc ^= data; \
-	crc = (table[(crc & 0xff) + 0x300]) ^	\
-	      (table[((crc >> 8) & 0xff) + 0x200]) ^	\
-	      (table[((crc >> 16) & 0xff) + 0x100]) ^	\
-	      (table[(crc >> 24) & 0xff]);
+#define crc_n4d(crc, data, table)                                              \
+  crc ^= data;                                                                 \
+  crc = (table[(crc & 0xff) + 0x300]) ^ (table[((crc >> 8) & 0xff) + 0x200]) ^ \
+        (table[((crc >> 16) & 0xff) + 0x100]) ^ (table[(crc >> 24) & 0xff]);
 
-#define crcsm_n4d(crc, data, table) crc ^= data; \
-	crc = (crc >> 8) ^ (table[crc & 0xff]); \
-	crc = (crc >> 8) ^ (table[crc & 0xff]); \
-	crc = (crc >> 8) ^ (table[crc & 0xff]); \
-	crc = (crc >> 8) ^ (table[crc & 0xff]);
+#define crcsm_n4d(crc, data, table)                                            \
+  crc ^= data;                                                                 \
+  crc = (crc >> 8) ^ (table[crc & 0xff]);                                      \
+  crc = (crc >> 8) ^ (table[crc & 0xff]);                                      \
+  crc = (crc >> 8) ^ (table[crc & 0xff]);                                      \
+  crc = (crc >> 8) ^ (table[crc & 0xff]);
 
 /** CRC32
  * Alias CRC-32/ADCCP, PKZIP, Ethernet, 802.3
@@ -118,37 +111,35 @@ FastCRC32::FastCRC32(uint32_t seed) {
 
 uint32_t FastCRC32::crc32_calc(const uint8_t *data, uint16_t len) {
 
-	uint32_t crc = seed_^0xffffffff;
+  uint32_t crc = seed_ ^ 0xffffffff;
 
-	while (((uintptr_t)data & 3) && len) {
-		crc = (crc >> 8) ^ CRC_TABLE_CRC32[(crc & 0xff) ^ *data++];
-		len--;
-	}
+  while (((uintptr_t)data & 3) && len) {
+    crc = (crc >> 8) ^ CRC_TABLE_CRC32[(crc & 0xff) ^ *data++];
+    len--;
+  }
 
-	while (len >= 16) {
-		len -= 16;
-		#if CRC_BIGTABLES
-		crc_n4d(crc, ((uint32_t *)data)[0], CRC_TABLE_CRC32);
-		crc_n4d(crc, ((uint32_t *)data)[1], CRC_TABLE_CRC32);
-		crc_n4d(crc, ((uint32_t *)data)[2], CRC_TABLE_CRC32);
-		crc_n4d(crc, ((uint32_t *)data)[3], CRC_TABLE_CRC32);
-		#else
-		crcsm_n4d(crc, ((uint32_t *)data)[0], CRC_TABLE_CRC32);
-		crcsm_n4d(crc, ((uint32_t *)data)[1], CRC_TABLE_CRC32);
-		crcsm_n4d(crc, ((uint32_t *)data)[2], CRC_TABLE_CRC32);
-		crcsm_n4d(crc, ((uint32_t *)data)[3], CRC_TABLE_CRC32);
-		#endif
-		data += 16;
-	}
+  while (len >= 16) {
+    len -= 16;
+#if CRC_BIGTABLES
+    crc_n4d(crc, ((uint32_t *)data)[0], CRC_TABLE_CRC32);
+    crc_n4d(crc, ((uint32_t *)data)[1], CRC_TABLE_CRC32);
+    crc_n4d(crc, ((uint32_t *)data)[2], CRC_TABLE_CRC32);
+    crc_n4d(crc, ((uint32_t *)data)[3], CRC_TABLE_CRC32);
+#else
+    crcsm_n4d(crc, ((uint32_t *)data)[0], CRC_TABLE_CRC32);
+    crcsm_n4d(crc, ((uint32_t *)data)[1], CRC_TABLE_CRC32);
+    crcsm_n4d(crc, ((uint32_t *)data)[2], CRC_TABLE_CRC32);
+    crcsm_n4d(crc, ((uint32_t *)data)[3], CRC_TABLE_CRC32);
+#endif
+    data += 16;
+  }
 
-	while (len--) {
-		crc = (crc >> 8) ^ CRC_TABLE_CRC32[(crc & 0xff) ^ *data++];
-	}
+  while (len--) {
+    crc = (crc >> 8) ^ CRC_TABLE_CRC32[(crc & 0xff) ^ *data++];
+  }
 
-	//seed = crc;
-	crc ^= 0xffffffff;
+  // seed = crc;
+  crc ^= 0xffffffff;
 
-	return crc;
+  return crc;
 }
-
-

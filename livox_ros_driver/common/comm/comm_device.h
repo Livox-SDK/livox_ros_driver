@@ -48,12 +48,12 @@ struct CommDevUartConfig {
 
 /** Communication device usb config */
 struct CommDevUsbConfig {
-  void* data;
+  void *data;
 };
 
 /** Communication device can config */
 struct CommDevCanConfig {
-  void* data;
+  void *data;
 };
 
 /** Communication device config */
@@ -67,5 +67,5 @@ typedef struct {
   } config;
 } CommDevConfig;
 
-}  // namespace livox
-#endif  // COMM_COMM_DEVICE_H_
+} // namespace livox_ros
+#endif // COMM_COMM_DEVICE_H_

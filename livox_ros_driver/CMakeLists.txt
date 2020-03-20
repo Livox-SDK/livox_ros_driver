@@ -143,7 +143,7 @@ add_executable(${PROJECT_NAME}_node
 # precompile macro and compile option
 #---------------------------------------------------------------------------------------
 target_compile_options(${PROJECT_NAME}_node
-    PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall -Werror>
+    PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wall>
     )
 
 #---------------------------------------------------------------------------------------

@@ -29,12 +29,13 @@
 
 namespace livox_ros {
 const uint8_t kSdkProtocolSof = 0xAA;
-const uint32_t kSdkPacketCrcSize = 4;          // crc32
-const uint32_t kSdkPacketPreambleCrcSize = 2;  // crc16
+const uint32_t kSdkPacketCrcSize = 4;         // crc32
+const uint32_t kSdkPacketPreambleCrcSize = 2; // crc16
 
-SdkProtocol::SdkProtocol(uint16_t seed16, uint32_t seed32) : crc16_(seed16), crc32_(seed32) {}
+SdkProtocol::SdkProtocol(uint16_t seed16, uint32_t seed32)
+    : crc16_(seed16), crc32_(seed32) {}
 
-int32_t SdkProtocol::Pack(uint8_t *o_buf, uint32_t o_buf_size, uint32_t *o_len,\
+int32_t SdkProtocol::Pack(uint8_t *o_buf, uint32_t o_buf_size, uint32_t *o_len,
                           const CommPacket &i_packet) {
   SdkPacket *sdk_packet = (SdkPacket *)o_buf;
 
@@ -52,14 +53,15 @@ int32_t SdkProtocol::Pack(uint8_t *o_buf, uint32_t o_buf_size, uint32_t *o_len,\
   sdk_packet->version = kSdkVer0;
   sdk_packet->packet_type = i_packet.packet_type;
   sdk_packet->seq_num = i_packet.seq_num & 0xFFFF;
-  sdk_packet->preamble_crc = crc16_.mcrf4xx_calc(o_buf, GetPreambleLen() - \
-                                                 kSdkPacketPreambleCrcSize);
+  sdk_packet->preamble_crc =
+      crc16_.mcrf4xx_calc(o_buf, GetPreambleLen() - kSdkPacketPreambleCrcSize);
   sdk_packet->cmd_set = i_packet.cmd_set;
   sdk_packet->cmd_id = i_packet.cmd_code;
 
   memcpy(sdk_packet->data, i_packet.data, i_packet.data_len);
 
-  uint32_t crc = crc32_.crc32_calc(o_buf, sdk_packet->length - kSdkPacketCrcSize);
+  uint32_t crc =
+      crc32_.crc32_calc(o_buf, sdk_packet->length - kSdkPacketCrcSize);
   o_buf[sdk_packet->length - 4] = crc & 0xFF;
   o_buf[sdk_packet->length - 3] = (crc >> 8) & 0xFF;
   o_buf[sdk_packet->length - 2] = (crc >> 16) & 0xFF;
@@ -70,11 +72,12 @@ int32_t SdkProtocol::Pack(uint8_t *o_buf, uint32_t o_buf_size, uint32_t *o_len,\
   return 0;
 }
 
-int32_t SdkProtocol::ParsePacket(const uint8_t *i_buf, uint32_t i_len, CommPacket *o_packet) {
+int32_t SdkProtocol::ParsePacket(const uint8_t *i_buf, uint32_t i_len,
+                                 CommPacket *o_packet) {
   SdkPacket *sdk_packet = (SdkPacket *)i_buf;
 
   if (i_len < GetPacketWrapperLen()) {
-    return -1;  // packet lenth error
+    return -1; // packet lenth error
   }
 
   memset((void *)o_packet, 0, sizeof(CommPacket));
@@ -92,9 +95,7 @@ int32_t SdkProtocol::ParsePacket(const uint8_t *i_buf, uint32_t i_len, CommPacke
   return 0;
 }
 
-uint32_t SdkProtocol::GetPreambleLen() {
-  return sizeof(SdkPreamble);
-}
+uint32_t SdkProtocol::GetPreambleLen() { return sizeof(SdkPreamble); }
 
 uint32_t SdkProtocol::GetPacketWrapperLen() {
   return sizeof(SdkPacket) - 1 + kSdkPacketCrcSize;
@@ -108,7 +109,8 @@ uint32_t SdkProtocol::GetPacketLen(const uint8_t *buf) {
 int32_t SdkProtocol::CheckPreamble(const uint8_t *buf) {
   SdkPreamble *preamble = (SdkPreamble *)buf;
 
-  if ((preamble->sof == kSdkProtocolSof) && (crc16_.mcrf4xx_calc(buf, GetPreambleLen()) == 0)) {
+  if ((preamble->sof == kSdkProtocolSof) &&
+      (crc16_.mcrf4xx_calc(buf, GetPreambleLen()) == 0)) {
     return 0;
   } else {
     return -1;
@@ -118,10 +120,10 @@ int32_t SdkProtocol::CheckPreamble(const uint8_t *buf) {
 int32_t SdkProtocol::CheckPacket(const uint8_t *buf) {
   SdkPacket *sdk_packet = (SdkPacket *)buf;
 
-  uint32_t crc = ((uint32_t)(buf[sdk_packet->length - 4])) | \
-                  (((uint32_t)(buf[sdk_packet->length - 3])) << 8)  | \
-                  (((uint32_t)(buf[sdk_packet->length - 2])) << 16) | \
-                  (((uint32_t)(buf[sdk_packet->length - 1])) << 24);
+  uint32_t crc = ((uint32_t)(buf[sdk_packet->length - 4])) |
+                 (((uint32_t)(buf[sdk_packet->length - 3])) << 8) |
+                 (((uint32_t)(buf[sdk_packet->length - 2])) << 16) |
+                 (((uint32_t)(buf[sdk_packet->length - 1])) << 24);
 
   if (crc32_.crc32_calc(buf, sdk_packet->length - kSdkPacketCrcSize) == crc) {
     return 0;
@@ -129,4 +131,4 @@ int32_t SdkProtocol::CheckPacket(const uint8_t *buf) {
     return -1;
   }
 }
-}// namespace livox
+} // namespace livox_ros

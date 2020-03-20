@@ -23,17 +23,17 @@
 //
 
 #include "comm_protocol.h"
+#include <iostream>
 #include <stdio.h>
 #include <string.h>
-#include <iostream>
 
 namespace livox_ros {
 
-CommProtocol::CommProtocol(ProtocolConfig& config) : config_(config) {
+CommProtocol::CommProtocol(ProtocolConfig &config) : config_(config) {
   ResetParser();
   ResetCache();
 
-  offset_to_read_index_= 0;
+  offset_to_read_index_ = 0;
   packet_length_ = 0;
 
   if (kGps == config.type) {
@@ -89,7 +89,8 @@ uint32_t CommProtocol::GetValidDataSize() {
 }
 
 void CommProtocol::UpdateCache(void) {
-  if (GetCacheTailSize() < kMoveCacheLimit) {  /* move unused data to cache head */
+  if (GetCacheTailSize() <
+      kMoveCacheLimit) { /* move unused data to cache head */
     uint32_t valid_data_size = GetValidDataSize();
 
     if (valid_data_size) {
@@ -103,38 +104,35 @@ void CommProtocol::UpdateCache(void) {
   }
 }
 
-int32_t CommProtocol::Pack(uint8_t *o_buf, uint32_t o_buf_size, uint32_t *o_len, \
+int32_t CommProtocol::Pack(uint8_t *o_buf, uint32_t o_buf_size, uint32_t *o_len,
                            const CommPacket &i_packet) {
   return protocol_->Pack(o_buf, o_buf_size, o_len, i_packet);
 }
 
-void CommProtocol::ResetParser() {
-  fsm_parse_step_ = kSearchPacketPreamble;
-}
+void CommProtocol::ResetParser() { fsm_parse_step_ = kSearchPacketPreamble; }
 
 int32_t CommProtocol::ParseCommStream(CommPacket *o_pack) {
   int32_t ret = kParseFail;
-  while ((GetValidDataSize() > protocol_->GetPreambleLen()) && \
+  while ((GetValidDataSize() > protocol_->GetPreambleLen()) &&
          (GetValidDataSize() > offset_to_read_index_)) {
     switch (fsm_parse_step_) {
-      case kSearchPacketPreamble: {
-        FsmSearchPacketPreamble();
-        break;
-      }
-      case kFindPacketLength: {
-        FsmFindPacketLength();
-        break;
-      }
-      case kGetPacketData: {
-        ret = FsmGetPacketData(o_pack);
-        break;
-      }
-      default: {
-        FsmParserStateTransfer(kSearchPacketPreamble);
-      }
+    case kSearchPacketPreamble: {
+      FsmSearchPacketPreamble();
+      break;
+    }
+    case kFindPacketLength: {
+      FsmFindPacketLength();
+      break;
+    }
+    case kGetPacketData: {
+      ret = FsmGetPacketData(o_pack);
+      break;
+    }
+    default: { FsmParserStateTransfer(kSearchPacketPreamble); }
     }
 
-    if (ret == kParseNeedMoreData) break; /*  */
+    if (ret == kParseNeedMoreData)
+      break; /*  */
   }
 
   return ret;
@@ -158,16 +156,18 @@ int32_t CommProtocol::FsmSearchPacketPreamble() {
         break;
       } else {
         packet_length_ = protocol_->GetPacketLen(GetCacheReadPos());
-        if ((packet_length_ < cache_.size) && \
-            (packet_length_ > protocol_->GetPacketWrapperLen())) { /* check the legality of length */
+        if ((packet_length_ < cache_.size) &&
+            (packet_length_ >
+             protocol_
+                 ->GetPacketWrapperLen())) { /* check the legality of length */
           FsmParserStateTransfer(kGetPacketData);
           break;
         }
       }
     }
-    //printf("|%2x",  cache_.buf[cache_.rd_idx]);
+    // printf("|%2x",  cache_.buf[cache_.rd_idx]);
     ++cache_.rd_idx; /* skip one byte */
-  } while(0);
+  } while (0);
 
   return 0;
 }
@@ -216,9 +216,9 @@ int32_t CommProtocol::FsmGetPacketData(CommPacket *o_pack) {
     cache_.rd_idx += protocol_->GetPacketLen(GetCacheReadPos());
     FsmParserStateTransfer(kSearchPacketPreamble);
     return kParseSuccess;
-  } while(0);
+  } while (0);
 
   return ret;
 }
 
-}  // namespace livox
+} // namespace livox_ros
