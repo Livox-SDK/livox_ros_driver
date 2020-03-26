@@ -55,6 +55,9 @@ LdsLvx::~LdsLvx() {
   if (packets_of_frame_.packet != nullptr) {
     delete[] packets_of_frame_.packet;
   }
+  if (t_read_lvx_->joinable()) {
+    t_read_lvx_->join();
+  }
 }
 
 void LdsLvx::PrepareExit(void) {
