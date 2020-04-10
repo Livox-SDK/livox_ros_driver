@@ -84,7 +84,7 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src_) {
 
 uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint32_t data_type) {
   uint32_t queue_size = (interval_ms * GetPacketNumPerSec(data_type)) / 1000;
-  queue_size = queue_size;
+
   if (queue_size < kMinEthPacketQueueSize) {
     queue_size = kMinEthPacketQueueSize;
   } else if (queue_size > kMaxEthPacketQueueSize) {
