@@ -29,6 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	message_generation
 	rosbag
+	pcl_ros
 	)
 
 ## Find pcl lib
@@ -64,6 +65,7 @@ endif (APR_FOUND)
 ## DEPENDS: system dependencies of this project that dependent projects also n    eed
 catkin_package(CATKIN_DEPENDS
 	roscpp rospy std_msgs message_runtime
+	pcl_ros
 	)
 
 #---------------------------------------------------------------------------------------
