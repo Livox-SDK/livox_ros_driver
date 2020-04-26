@@ -131,8 +131,8 @@ int32_t CommProtocol::ParseCommStream(CommPacket *o_pack) {
     default: { FsmParserStateTransfer(kSearchPacketPreamble); }
     }
 
-    if (ret == kParseNeedMoreData)
-      break; /*  */
+    /* Must exit when in the below case */
+    if ((ret == kParseSuccess) || (ret == kParseNeedMoreData)) break; 
   }
 
   return ret;
