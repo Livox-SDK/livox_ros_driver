@@ -1,4 +1,4 @@
-# 览沃 ROS 驱动程序（ livox_ros_driver ）
+# 览沃 ROS 驱动程序（ [livox_ros_driver English README](https://github.com/Livox-SDK/livox_ros_driver/) ）
 
 ​    览沃ROS驱动程序是一个全新的 ROS 包，专门用于连接览沃生产的 LiDAR 设备。该驱动程序可以在安装了
 ROS 环境（ indigo,kinetic,melodic ）的 ubuntu14.04/16.04/18.04 操作系统下运行。经测试可以运行览沃 ROS 驱动程序的硬件平台包括：intel x86 主流 cpu 平台，部分 ARM64 硬件平台（如，nvida TX2/Xavier 等）。
