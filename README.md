@@ -1,4 +1,4 @@
-# Livox ROS Driver
+# Livox ROS Driver([览沃ROS驱动程序中文说明](https://github.com/Livox-SDK/livox_ros_driver/blob/master/README_CN.md))
 
 livox_ros_driver is a new ros package, which is designed to gradually become the standard driver package for livox devices in the ros environment.
 
