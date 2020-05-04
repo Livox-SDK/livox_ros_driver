@@ -1,6 +1,6 @@
 # 览沃 ROS 驱动程序（ [livox_ros_driver English README](https://github.com/Livox-SDK/livox_ros_driver/) ）
 
-览沃ROS驱动程序是一个全新的 ROS 包，专门用于连接览沃生产的 LiDAR 设备。该驱动程序可以在安装了
+览沃ROS驱动程序是一个全新的 ROS 包，专门用于连接览沃生产的 LiDAR 产品。该驱动程序可以在安装了
 ROS 环境（ indigo,kinetic,melodic ）的 ubuntu14.04/16.04/18.04 操作系统下运行。经测试可以运行览沃 ROS 驱动程序的硬件平台包括：intel x86 主流 cpu 平台，部分 ARM64 硬件平台（如，nvida TX2/Xavier 等）。
 
 ## 1. 安装依赖
@@ -103,11 +103,11 @@ roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HD
 
 览沃 ROS 驱动程序中的所有内部参数都位于 launch 文件中，下面将对经常用到的三个参数进行详细说明:
 
-| 参数名       | 详细说明                                                     |
-| ------------ | ------------------------------------------------------------ |
-| publish_freq | 设置点云发布频率 <br>浮点数据类型，推荐值 5.0，10.0，20.0，50.0 等。 |
-| multi_topic  | LiDAR 设备是否拥有独立的 topic 发布点云数据<br>0 -- 所有 LiDAR 设备共同使用同一个 topic 发送点云数据<br>1 -- 每个 LiDAR 设备各自拥有独立的 topic 发布点云数据 |
-| xfer_format  | 设置点云格式<br>0 -- 览沃 pointcloud2(PointXYZRTL) 点云格式<br>1 -- 览沃自定义点云数据格式<br>2 -- PCL库中标准 pointcloud2(pcl::PointXYZI) 点云格式 |
+| 参数名       | 详细说明                                                     | 默认值 |
+| ------------ | ------------------------------------------------------------ | ------ |
+| publish_freq | 设置点云发布频率 <br>浮点数据类型，推荐值 5.0，10.0，20.0，50.0 等。 | 10.0   |
+| multi_topic  | LiDAR 设备是否拥有独立的 topic 发布点云数据<br>0 -- 所有 LiDAR 设备共同使用同一个 topic 发送点云数据<br>1 -- 每个 LiDAR 设备各自拥有独立的 topic 发布点云数据 | 0      |
+| xfer_format  | 设置点云格式<br>0 -- 览沃 pointcloud2(PointXYZRTL) 点云格式<br>1 -- 览沃自定义点云数据格式<br>2 -- PCL库中标准 pointcloud2(pcl::PointXYZI) 点云格式 | 0      |
 
 ### 4.3 览沃 ROS 驱动程序点云数据详细说明
 
