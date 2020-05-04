@@ -65,13 +65,14 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src_) {
     struct tm time_utc;
     time_utc.tm_isdst = 0;
     time_utc.tm_year = raw_packet->timestamp[0] + 100; // map 2000 to 1990
-    time_utc.tm_mon = raw_packet->timestamp[1];
+    time_utc.tm_mon  = raw_packet->timestamp[1] - 1;   // map 1~12 to 0~11
     time_utc.tm_mday = raw_packet->timestamp[2];
     time_utc.tm_hour = raw_packet->timestamp[3];
     time_utc.tm_min = 0;
     time_utc.tm_sec = 0;
 
-    uint64_t time_epoch = mktime(&time_utc);
+    //uint64_t time_epoch = mktime(&time_utc);
+    uint64_t time_epoch = timegm(&time_utc); // no timezone
     time_epoch = time_epoch * 1000000 + timestamp.stamp_word.high; // to us
     time_epoch = time_epoch * 1000;                                // to ns
 
