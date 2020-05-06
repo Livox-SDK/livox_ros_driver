@@ -118,7 +118,7 @@ roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HD
 float32 x               # X axis, unit:m
 float32 y               # Y axis, unit:m
 float32 z               # Z axis, unit:m
-float32 intensity       # the value is reflectivity, 0~255
+float32 intensity       # the value is reflectivity, 0.0~255.0
 uint8 tag               # livox tag
 uint8 line              # laser number in lidar
 
