@@ -111,7 +111,7 @@ roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HD
 
 ### 4.3 览沃 ROS 驱动程序点云数据详细说明
 
-1. 览沃 pointcloud2(PointXYZRTL) 点云格式，详细如下:
+1. 览沃 pointcloud2(PointXYZRTL) 点云格式，详细说明如下:
 
 ```c
 
@@ -124,7 +124,7 @@ uint8 line              # laser number in lidar
 
 ```
 
-2. 览沃自定义数据包格式，详细如下 :
+2. 览沃自定义数据包格式，详细说明如下 :
 
 ```c
 Header header             # ROS standard message header
