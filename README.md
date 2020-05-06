@@ -8,30 +8,31 @@ Before running livox_ros_driver, ROS and Livox-SDK must be installed.
 
 ### 1.1 ROS installation
 
-For ROS installation, please refer to the ROS installation guide:
+For ROS installation, please refer to the ROS installation guide :
 
-   [ROS installation guide](https://www.ros.org/install/)
+[ROS installation guide](https://www.ros.org/install/)
 
-​    ***Note:***
+&ensp;&ensp;&ensp;&ensp;***Note:***
 
-   (1) Be sure to install the full version of ROS (ros-distro-desktop-full);
+&ensp;&ensp;&ensp;&ensp;(1) Be sure to install the full version of ROS (ros-distro-desktop-full);
 
-   (2) There are 7 to 8 steps in ROS installation, please read the installation guide in detail;
+&ensp;&ensp;&ensp;&ensp;(2) There are 7 to 8 steps in ROS installation, please read the installation guide in detail;
 
 ### 1.2 Livox-SDK Installation
 
-   1. Download or clone [Livox-SDK](https://github.com/Livox-SDK/Livox-SDK) from Github to local;
+1. Download or clone [Livox-SDK](https://github.com/Livox-SDK/Livox-SDK) from Github to local;
 
-   2. Refer to the corresponding [README.md](https://github.com/Livox-SDK/Livox-SDK/blob/master/README.md) document to install and run Livox-SDK;
+2. Refer to the corresponding [README.md](https://github.com/Livox-SDK/Livox-SDK/blob/master/README.md) document to install and run Livox-SDK;
 
 ## 2. Get and build livox_ros_driver
 
 1. Get livox_ros_driver from GitHub :
 
-   `git clone https://github.com/Livox-SDK/livox_ros_driver.git ws_livox/src`
+　　`git clone https://github.com/Livox-SDK/livox_ros_driver.git ws_livox/src`
 
-   ***Note:***
-   Be sure to use the above command to clone the code to the local, otherwise it will compile error due to the file path problem.
+&ensp;&ensp;&ensp;&ensp;***Note:***
+
+&ensp;&ensp;&ensp;&ensp;Be sure to use the above command to clone the code to the local, otherwise it will compile error due to the file path problem.
 
 2. Use the following command to build livox_ros_driver :
 
@@ -42,49 +43,47 @@ For ROS installation, please refer to the ROS installation guide:
 
 3. Use the following command to update the current ROS package environment :
 
-   `source ./devel/setup.sh`
+&ensp;&ensp;&ensp;&ensp;`source ./devel/setup.sh`
 
 ## 3. Run livox_ros_driver
 
 ### 3.1 Use the ROS launch file to load livox_ros_driver
 
-   The command format is as follows:
+&ensp;&ensp;&ensp;&ensp;The command format is as follows :
 
-   `roslaunch livox_ros_driver [launch file] [param]`
+&ensp;&ensp;&ensp;&ensp;`roslaunch livox_ros_driver [launch file] [param]`
 
-1. If the [param] parameter is empty, livox_ros_driver will connect to the corresponding device according to the configuration in the configuration file. The connection rules are as follows:
+1. If the [param] parameter is empty, livox_ros_driver will connect to the corresponding device according to the configuration in the configuration file. The connection rules are as follows :
 
-​       When the connection status of the device specified in the configuration file is configured to enable 
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;When the connection status of the device specified in the configuration file is configured to enable connection (true), the livox_ros_driver will only connect to the device specified in the configuration file;
 
-connection (true), the  livox_ros_driver will only connect to the device specified in the configuration file;
+&ensp;&ensp;&ensp;&ensp;***Note:***
 
-   ***Note:***
+&ensp;&ensp;&ensp;&ensp;(1) the json configuration file is in the "ws_livox/src/livox_ros_driver / config" directory;
 
-   (1) the json configuration file is in the "ws_livox / src / livox_ros_driver / config" directory;
-
-   (2) When the connection status of the devices specified in the configuration file is all configured to prohibit connection (false), livox_ros_driver will automatically connect all the devices that are scanned;
+&ensp;&ensp;&ensp;&ensp;(2) When the connection status of the devices specified in the configuration file is all configured to prohibit connection (false), livox_ros_driver will automatically connect all the devices that are scanned;
 
 2. If the [param] parameter is the broadcast code of LiDAR, take LiDAR (the broadcast code is 0TFDG3B006H2Z11) and LiDAR (the broadcast code is 1HDDG8M00100191) as an example, Use the  command as follows :
 
 ```bash
-roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HDDG8M00100191"
+   roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HDDG8M00100191"
 ```
 
-   ***Broadcast code introduction***
+&ensp;&ensp;&ensp;&ensp;***Broadcast code introduction***
 
-   Each Livox LiDAR device has a unique broadcast code. The broadcast code consists of a 14-character serial number and an additional character (1, 2, or 3), for a total of 15 characters. The above serial number is located under the QR code of the LiDAR body shell (see the figure below). The broadcast code is used to specify the LiDAR device to be connected. The detailed format is as follows :
+&ensp;&ensp;&ensp;&ensp;Each Livox LiDAR device has a unique broadcast code. The broadcast code consists of a 14-character serial number and an additional character (1, 2, or 3), for a total of 15 characters. The above serial number is located under the QR code of the LiDAR body shell (see the figure below). The broadcast code is used to specify the LiDAR device to be connected. The detailed format is as follows :
 
-   ![Broadcast Code](images/broadcast_code.png)
+&ensp;&ensp;&ensp;&ensp;![Broadcast Code](images/broadcast_code.png)
 
-   ***Note:***
+&ensp;&ensp;&ensp;&ensp;***Note:***
 
-   X in the figure above corresponds to 1 in MID-100_Left / MID-40 / Horizon / Tele products, 2 in MID-100_Middle, and 3 in MID-100_Right.
+&ensp;&ensp;&ensp;&ensp;X in the figure above corresponds to 1 in MID-100_Left / MID-40 / Horizon / Tele products, 2 in MID-100_Middle, and 3 in MID-100_Right.
 
 ## 4. Launch file and livox_ros_driver internal parameter configuration instructions
 
 ### 4.1 Launch file configuration instructions
 
-All launch files of livox_ros_driver are in the "ws_livox / src / livox_ros_driver / launch" directory. Different launch files have different configuration parameter values and are used in different scenarios:
+All launch files of livox_ros_driver are in the "ws_livox / src / livox_ros_driver / launch" directory. Different launch files have different configuration parameter values and are used in different scenarios :
 
 | launch file name          | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
@@ -99,7 +98,7 @@ All launch files of livox_ros_driver are in the "ws_livox / src / livox_ros_driv
 
 #### 4.2 Livox_ros_driver internal main parameter configuration instructions
 
-All internal parameters of Livox_ros_driver are in the launch file. Below are detailed descriptions of the three commonly used parameters:
+All internal parameters of Livox_ros_driver are in the launch file. Below are detailed descriptions of the three commonly used parameters :
 
 | Parameter    | Detailed description                                         | Default |
 | ------------ | ------------------------------------------------------------ | ------- |
@@ -107,7 +106,7 @@ All internal parameters of Livox_ros_driver are in the launch file. Below are de
 | multi_topic  | If the LiDAR device has an independent topic to publish pointcloud data<br>0 -- All LiDAR devices use the same topic to publish pointcloud data<br>1 -- Each LiDAR device has its own topic to publish point cloud data | 0       |
 | xfer_format  | Set pointcloud format<br>0 -- Livox pointcloud2(PointXYZRTL) pointcloud format<br>1 -- Livox customized pointcloud format<br>2 -- Standard pointcloud2 (pcl :: PointXYZI) pointcloud format in the PCL library | 0       |
 
-***Livox_ros_driver pointcloud data detailed description :***
+&ensp;&ensp;&ensp;&ensp;***Livox_ros_driver pointcloud data detailed description :***
 
 1. Livox pointcloud2 (PointXYZRTL) point cloud format, as follows :
 
@@ -131,7 +130,7 @@ uint8[3]  rsvd            # Reserved use
 CustomPoint[] points      # Pointcloud data
 ```
 
-​     Customized Point Cloud (CustomPoint) format in the above customized data package:
+&ensp;&ensp;&ensp;&ensp;Customized Point Cloud (CustomPoint) format in the above customized data package :
 
 ```c
 uint32 offset_time      # offset time relative to the base time
@@ -143,15 +142,15 @@ uint8 tag               # livox tag
 uint8 line              # laser number in lidar
 ```
 
-3. The standard pointcloud2 (pcl :: PointXYZI)  format in the PCL library:
+1. The standard pointcloud2 (pcl :: PointXYZI)  format in the PCL library :
 
-​       Please refer to the pcl :: PointXYZI data structure in the point_types.hpp file of the PCL library.
+&ensp;&ensp;&ensp;&ensp;Please refer to the pcl :: PointXYZI data structure in the point_types.hpp file of the PCL library.
 
 ## 5. Configure LiDAR parameters
 
-In the "ws_livox / src / livox_ros_driver / launch" path, there are two json files, livox_hub_config.json and livox_lidar_config.json.
+In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, livox_hub_config.json and livox_lidar_config.json.
 
-1. When connecting directly to LiDAR, use the livox_lidar_config.json file to configure LiDAR parameters. Examples of file contents are as follows:
+1. When connecting directly to LiDAR, use the livox_lidar_config.json file to configure LiDAR parameters. Examples of file contents are as follows :
 
 ```json
 {
@@ -169,9 +168,9 @@ In the "ws_livox / src / livox_ros_driver / launch" path, there are two json fil
 }
 ```
 
-   The parameter attributes in the above json file are described in the following table :
+&ensp;&ensp;&ensp;&ensp;The parameter attributes in the above json file are described in the following table :
 
-​                                                    LiDAR configuration parameter
+<center>LiDAR configuration parameter</center>
 
 | Parameter                  | Type    | Description                                                  | Default         |
 | :------------------------- | ------- | ------------------------------------------------------------ | --------------- |
@@ -183,11 +182,11 @@ In the "ws_livox / src / livox_ros_driver / launch" path, there are two json fil
 | imu_rate                   | Int     | Push frequency of IMU sensor data<br>0 -- stop push<br>1 -- 200 Hz<br>Others -- undefined, it will cause unpredictable behavior<br>Currently only Horizon supports this, MID serials do not support it | 0               |
 | extrinsic_parameter_source | Int     | Whether to enable extrinsic parameter automatic compensation<br>0 -- Disable automatic compensation of LiDAR external reference<br>1 -- Automatic compensation of LiDAR external reference | 0               |
 
-   ***Note:***
+&ensp;&ensp;&ensp;&ensp;***Note:***
 
-   When connecting multiple LiDAR, if you want to use the external parameter automatic compensation function, you must first use the livox viewer to calibrate the external parameters and save them to LiDAR.
+&ensp;&ensp;&ensp;&ensp;When connecting multiple LiDAR, if you want to use the external parameter automatic compensation function, you must first use the livox viewer to calibrate the external parameters and save them to LiDAR.
 
-1. When connecting to the Hub, use livox_hub_config.json to configure the parameters of the Hub and LiDAR. Examples of file contents are as follows:
+2. When connecting to the Hub, use livox_hub_config.json to configure the parameters of the Hub and LiDAR. Examples of file contents are as follows :
 
 ```json
 {
@@ -207,9 +206,9 @@ In the "ws_livox / src / livox_ros_driver / launch" path, there are two json fil
 }
 ```
 
-   The main difference between the content of Hub json configuration file and the content of the LiDAR json configuration file is that the Hub configuration item "hub_config" is added, and the related configuration content of the Hub is shown in the following table :
+&ensp;&ensp;&ensp;&ensp;The main difference between the content of Hub json configuration file and the content of the LiDAR json configuration file is that the Hub configuration item "hub_config" is added, and the related configuration content of the Hub is shown in the following table :
 
-​                                                              HUB configuration parameter
+<center>HUB configuration parameter</center>
 
 | Parameter      | Type    | Description                                                  | Default         |
 | -------------- | ------- | ------------------------------------------------------------ | --------------- |
@@ -217,11 +216,11 @@ In the "ws_livox / src / livox_ros_driver / launch" path, there are two json fil
 | enable_connect | Boolean | Whether to connect to this Hub<br>true -- Connecting to this Hub means that all LiDAR data connected to this Hub will be received<br>false -- Prohibition of connection to this Hub means that all LiDAR data connected to this Hub will not be received | false           |
 | coordinate     | Int     | Coordinate<br>0 -- Cartesian<br>1 -- Spherical             | 0               |
 
-   ***Note:***
+&ensp;&ensp;&ensp;&ensp;***Note:***
 
-   (1) The configuration parameters enable_connect and coordinate in the Hub configuration item "hub_config" are global and control the behavior of all LiDARs. Therefore, the LiDAR related configuration in the Hub json configuration file does not include these two contents.
+&ensp;&ensp;&ensp;&ensp;(1) The configuration parameters enable_connect and coordinate in the Hub configuration item "hub_config" are global and control the behavior of all LiDARs. Therefore, the LiDAR related configuration in the Hub json configuration file does not include these two contents.
 
-   (2) The Hub itself supports compensation of LiDAR external parameters, and does not require livox_ros_driver to compensate.
+&ensp;&ensp;&ensp;&ensp;(2) The Hub itself supports compensation of LiDAR external parameters, and does not require livox_ros_driver to compensate.
 
 ## 6. livox_ros_driver timestamp synchronization function
 
@@ -231,13 +230,13 @@ Prepare a GPS device to ensure that the GPS can output UTC time information in G
 
 [Timestamp synchronization](https://github.com/Livox-SDK/Livox-SDK/wiki/Timestamp-Synchronization)
 
-   ***Note:***
+&ensp;&ensp;&ensp;&ensp;***Note:***
 
-   (1) The time stamp synchronization function of livox_ros_driver is based on the LidarSetUtcSyncTime interface of Livox-SDK, and only supports GPS synchronization, which is one of many synchronization methods of livox devices.
+&ensp;&ensp;&ensp;&ensp;(1) The time stamp synchronization function of livox_ros_driver is based on the LidarSetUtcSyncTime interface of Livox-SDK, and only supports GPS synchronization, which is one of many synchronization methods of livox devices.
 
-   (2) Be sure to set the output frequency of GPRMC / GNRMC time information of GPS to 1Hz, other frequencies are not recommended.
+&ensp;&ensp;&ensp;&ensp;(2) Be sure to set the output frequency of GPRMC / GNRMC time information of GPS to 1Hz, other frequencies are not recommended.
 
-   (3) Examples of GPRMC / GNRMC format strings are as follows:
+&ensp;&ensp;&ensp;&ensp;(3) Examples of GPRMC / GNRMC format strings are as follows :
 
 ```bash
 $GNRMC,143909.00,A,5107.0020216,N,11402.3294835,W,0.036,348.3,210307,0.0,E,A*31
@@ -249,9 +248,9 @@ $GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
 
 ### 6.2 Enable timestamp synchronization
 
-livox_ros_driver only supports the timestamp synchronization function when connected to LiDAR. The timestamp related configuration item timesync_config is in the livox_lidar_config.json file. The detailed configuration content is shown in the table below:
+livox_ros_driver only supports the timestamp synchronization function when connected to LiDAR. The timestamp related configuration item timesync_config is in the livox_lidar_config.json file. The detailed configuration content is shown in the table below :
 
-​                                       Timestamp synchronization function configuration instructions
+<center>Timestamp synchronization function configuration instructions</center>
 
 | Parameter        | Type     | Description                                                  | Default        |
 | ---------------- | -------- | ------------------------------------------------------------ | -------------- |
@@ -265,6 +264,13 @@ livox_ros_driver only supports the timestamp synchronization function when conne
 
 livox_ros_driver supports the conversion of lvx pointcloud data files to rosbag files. Use the command as follows :
 
-​     `roslaunch livox_ros_driver lvx_to_rosbag.launch lvx_file_path:="/home/livox/test.lvx"`
+`roslaunch livox_ros_driver lvx_to_rosbag.launch lvx_file_path:="/home/livox/test.lvx"`
 
 After replacing "/home/livox/test.lvx" in the above command with the local lvx data file path, you can simply run it; if the conversion is successful, a rosbag format file with the same name will be generated under the above path.
+
+## 8. Support
+
+You can get support from Livox with the following methods :
+
+* Send email to dev@livoxtech.com with a clear description of your problem and your setup
+* Report issue on github

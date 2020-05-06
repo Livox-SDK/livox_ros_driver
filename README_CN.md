@@ -11,40 +11,40 @@ ROS 环境（ indigo,kinetic,melodic ）的 ubuntu14.04/16.04/18.04 操作系统
 
 ROS 环境安装请参考 ROS 安装指南：
 
-   [ROS 安装指南](https://www.ros.org/install/)
+[ROS 安装指南](https://www.ros.org/install/)
 
-   ***说明：***
+&ensp;&ensp;&ensp;&ensp;***说明：***
 
-   （1）务必安装 ROS 完整版 (ros-distro-desktop-full)；
+&ensp;&ensp;&ensp;&ensp;（1）务必安装 ROS 完整版 (ros-distro-desktop-full)；
 
-   （2）国内安装 ROS 时，由于网络环境问题，有可能安装失败或者安装错误，请耐心查找错误原因，并解决问题；
+&ensp;&ensp;&ensp;&ensp;（2）国内安装 ROS 时，由于网络环境问题，有可能安装失败或者安装错误，请耐心查找错误原因，并解决问题；
 
-   （3）ROS 安装一共有 7 到 8 个步骤，请仔细阅读安装指南；
+&ensp;&ensp;&ensp;&ensp;（3）ROS 安装一共有 7 到 8 个步骤，请仔细阅读安装指南；
 
 ### 1.2 Livox-SDK 安装
 
-   1、从 Github 下载或者克隆 Livox-SDK 到本地；
+1. 从 Github 下载或者克隆 Livox-SDK 到本地；
 
-   2、参考对应的 README.md 文档安装和运行 Livox-SDK；
+2. 参考对应的 README.md 文档安装和运行 Livox-SDK；
 
 ## 2. 获取并构建览沃 ROS 驱动源代码包
 
-   1、从览沃 GitHub 获取览沃 ROS 驱动程序
+1. 从览沃 GitHub 获取览沃 ROS 驱动程序
 
    `git clone https://github.com/Livox-SDK/livox_ros_driver.git ws_livox/src`
 
-   ***说明：***
+&ensp;&ensp;&ensp;&ensp;***说明：***
 
-   务必使用上面的命令克隆代码到本地，否则会因为文件路径的问题而编译出错
+&ensp;&ensp;&ensp;&ensp;务必使用上面的命令克隆代码到本地，否则会因为文件路径的问题而编译出错
 
-   2、参照如下命令，构建览沃 ROS 驱动程序
+2. 参照如下命令，构建览沃 ROS 驱动程序
 
    ```bash
    cd ws_livox
    catkin_make
    ```
 
-   3、使用如下命令更新当前 ROS 包环境
+3. 使用如下命令更新当前 ROS 包环境
 
    `source ./devel/setup.sh`
 
@@ -56,31 +56,31 @@ ROS 环境安装请参考 ROS 安装指南：
 
    `roslaunch livox_ros_driver [launch file] [param]`
 
-   1、如果 [param]  参数项为空，则览沃 ROS 驱动程序会根据配置文件中的具体配置来连接对应的设备，具体连接规则如下：
+1. 如果 [param]  参数项为空，则览沃 ROS 驱动程序会根据配置文件中的具体配置来连接对应的设备，具体连接规则如下：
 
-​      当配置文件中指定的设备连接状态配置为使能连接时 (true) ，览沃 ROS 驱动程序只会连接该配置文件中指定的设备；
+&ensp;&ensp;&ensp;&ensp;当配置文件中指定的设备连接状态配置为使能连接时 (true) ，览沃 ROS 驱动程序只会连接该配置文件中指定的设备；
 
-   ***说明***
+&ensp;&ensp;&ensp;&ensp;***说明***
 
-   （1）该配置文件位于 "ws_livox/src/livox_ros_driver/config" 目录下；
+&ensp;&ensp;&ensp;&ensp;（1）该配置文件位于 "ws_livox/src/livox_ros_driver/config" 目录下；
 
-   （2）当配置文件中指定的设备连接状态全部配置为禁止连接 (false) 时，览沃 ROS 驱动程序会自动连接扫描到的所有设备；
+&ensp;&ensp;&ensp;&ensp;（2）当配置文件中指定的设备连接状态全部配置为禁止连接 (false) 时，览沃 ROS 驱动程序会自动连接扫描到的所有设备；
 
-   2、如果 [param] 参数为 LiDAR 的广播码，以 LiDAR（ 广播码为 0TFDG3B006H2Z11 ）  和  LiDAR  ( 广播码为 1HDDG8M00100191 )  为例，使用的具体命令如下 :
+2. 如果 [param] 参数为 LiDAR 的广播码，以 LiDAR（ 广播码为 0TFDG3B006H2Z11 ）  和  LiDAR  ( 广播码为 1HDDG8M00100191 )  为例，使用的具体命令如下 :
 
 ```bash
 roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HDDG8M00100191"
 ```
 
-   ***广播码说明***
+&ensp;&ensp;&ensp;&ensp;***广播码说明***
 
-   每台览沃 LiDAR 设备拥有一个唯一的广播码。广播码由14位字符长度的序列号和一个额外的字符组成（ 1、2或者 3），一共 15 位字符长度，上述序列号位于 LiDAR 机身外壳的二维码下面（见下图）。广播码被用来指定要连接的 LiDAR 设备，详细组成格式如下：
+&ensp;&ensp;&ensp;&ensp;每台览沃 LiDAR 设备拥有一个唯一的广播码。广播码由14位字符长度的序列号和一个额外的字符组成（ 1、2或者 3），一共 15 位字符长度，上述序列号位于 LiDAR 机身外壳的二维码下面（见下图）。广播码被用来指定要连接的 LiDAR 设备，详细组成格式如下：
 
-![Broadcast Code](images/broadcast_code.png)
+&ensp;&ensp;&ensp;&ensp;![Broadcast Code](images/broadcast_code.png)
 
-   ***说明：***
+&ensp;&ensp;&ensp;&ensp;***说明：***
 
-   上图中 X ，在 MID-100_Left/MID-40/Horizon/Tele 产品中对应为 1 ，在 MID-100_Middle 中对应为 2，在MID-100_Right 中对应为 3 。
+&ensp;&ensp;&ensp;&ensp;上图中 X ，在 MID-100_Left/MID-40/Horizon/Tele 产品中对应为 1 ，在 MID-100_Middle 中对应为 2，在MID-100_Right 中对应为 3 。
 
 ## 4. Launch 文件与览沃 ROS 驱动程序内部参数配置说明
 
@@ -111,7 +111,7 @@ roslaunch livox_ros_driver livox_lidar_rviz.launch bd_list:="0TFDG3B006H2Z11&1HD
 
 ### 4.3 览沃 ROS 驱动程序点云数据详细说明
 
-   1、览沃 pointcloud2(PointXYZRTL) 点云格式，详细如下:
+1. 览沃 pointcloud2(PointXYZRTL) 点云格式，详细如下:
 
 ```c
 
@@ -124,7 +124,7 @@ uint8 line              # laser number in lidar
 
 ```
 
-   2、览沃自定义数据包格式，详细如下 :
+2. 览沃自定义数据包格式，详细如下 :
 
 ```c
 Header header             # ROS standard message header
@@ -135,7 +135,7 @@ uint8[3]  rsvd            # Reserved use
 CustomPoint[] points      # Pointcloud data
 ```
 
-​      上述自定义数据包中的自定义点云（CustomＰoint）格式  :
+&ensp;&ensp;&ensp;&ensp;上述自定义数据包中的自定义点云（CustomＰoint）格式  :
 
    ```c
 
@@ -149,15 +149,15 @@ uint8 line              # laser number in lidar
 
    ```
 
-   3、PCL 库中标准 pointcloud2(pcl::PointXYZI) 点云格式 :
+3. PCL 库中标准 pointcloud2(pcl::PointXYZI) 点云格式 :
 
-​      请参考 PCL 库 point_types.hpp 文件中 the pcl::PointXYZI 数据结构。
+&ensp;&ensp;&ensp;&ensp;请参考 PCL 库 point_types.hpp 文件中 the pcl::PointXYZI 数据结构。
 
 ## 5. 配置 LiDAR 参数
 
 在 "ws_livox/src/livox_ros_driver/config" 路径下, 有两个 json 配置文件，分别为  livox_hub_config.json 和 livox_lidar_config.json 。
 
-   1、直接连接 LiDAR 时，使用 livox_lidar_config.json 来配置 LiDAR 参数，文件内容示例如下：
+1. 直接连接 LiDAR 时，使用 livox_lidar_config.json 来配置 LiDAR 参数，文件内容示例如下：
 
    ```json
    {
@@ -175,9 +175,9 @@ uint8 line              # laser number in lidar
    }
    ```
 
-   上面 json 文件中各参数属性说明如下表：
+&ensp;&ensp;&ensp;&ensp;上面 json 文件中各参数属性说明如下表：
 
-   ​                                                            LiDAR 配置参数说明
+<center>LiDAR 配置参数说明</center>
 
 | 属性                       | 类型   | 描述                                                         | 默认值          |
 | :------------------------- | ------ | ------------------------------------------------------------ | --------------- |
@@ -189,16 +189,16 @@ uint8 line              # laser number in lidar
 | imu_rate                   | 整型   | IMU 传感器数据的推送频率<br>0 -- 关闭 IMU 传感器数据推送<br>1 --  以 200Hz 频率推送 IMU 传感器数据<br>其他值 -- 未定义，会导致不可预测的行为发生<br>目前只有 Horizon/Tele 支持此选项，MID 序列不支持 | 0               |
 | extrinsic_parameter_source | 整型   | 是否使能外参自动补偿<br>0 -- 不补偿 LiDAR 外参<br>1 -- 自动补偿 LiDAR 外参<br> | 0               |
 
-   ***说明：***
+&ensp;&ensp;&ensp;&ensp;***说明：***
 
-   连接多个 LiDAR 时，如果要使用外参自动补偿功能，必需先使用 livox viewer 标定好外参并保存到 LiDAR 中；
+&ensp;&ensp;&ensp;&ensp;连接多个 LiDAR 时，如果要使用外参自动补偿功能，必需先使用 livox viewer 标定好外参并保存到 LiDAR 中；
 
-   3、连接中心板时，使用 livox_hub_config.json 来配置中心板和 LiDAR 相关的参数，文件内容示例如下：
+2. 连接中心板时，使用 livox_hub_config.json 来配置中心板和 LiDAR 相关的参数，文件内容示例如下：
 
    ```json
 
    {
-   "hub_config": {
+   　　"hub_config": {
          "broadcast_code": "13UUG1R00400170",
          "enable_connect": true,
          "coordinate": 0
@@ -214,9 +214,9 @@ uint8 line              # laser number in lidar
    }
    ```
 
-   中心板 json 配置文件内容与 LiDAR 配置文件的主要区别在于，增加了中心板配置项 hub_config ，中心板相关的具体配置内容见下表：
+&ensp;&ensp;&ensp;&ensp;中心板 json 配置文件内容与 LiDAR 配置文件的主要区别在于，增加了中心板配置项 hub_config ，中心板相关的具体配置内容见下表：
 
-​                                                              HUB 配置参数说明
+<center>HUB 配置参数说明</center>
 
 | 属性           | 类型   | 描述                                                         | 默认值          |
 | -------------- | ------ | ------------------------------------------------------------ | --------------- |
@@ -224,11 +224,11 @@ uint8 line              # laser number in lidar
 | enable_connect | 布尔值 | 是否连接当前 Hub，<br>true -- 连接此 Hub，意味着所有与此中心板相连接的 LiDAR 数据都会被接收 <br>false -- 禁止连接此 Hub，意味着所有与此中心板相连接的 LiDAR 数据都不会被接收 | false           |
 | coordinate     | 整型   | 原始点云数据的坐标轴类型<br>0 -- 直角坐标系<br>1 -- 球坐标系 | 0               |
 
-***说明***
+&ensp;&ensp;&ensp;&ensp;***说明***
 
- （1）中心板配置项 hub_config 中配置参数 enable_connect 和 coordinate 是全局性的，控制着所有 LiDAR 的行为，因此中心板 json 配置文件中 LiDAR 相关的配置不包括这两项内容。
+&ensp;&ensp;&ensp;&ensp;（1）中心板配置项 hub_config 中配置参数 enable_connect 和 coordinate 是全局性的，控制着所有 LiDAR 的行为，因此中心板 json 配置文件中 LiDAR 相关的配置不包括这两项内容。
 
- （2）中心板自身支持补偿 LiDAR 外参，无需览沃 ROS 驱动程序来补偿。
+&ensp;&ensp;&ensp;&ensp;（2）中心板自身支持补偿 LiDAR 外参，无需览沃 ROS 驱动程序来补偿。
 
 ## 6. 览沃 ROS 驱动程序的时间戳同步功能
 
@@ -238,21 +238,21 @@ uint8 line              # laser number in lidar
 
 [时间戳同步](https://github.com/Livox-SDK/Livox-SDK/wiki/Timestamp-Synchronization)
 
-   ***说明***
+&ensp;&ensp;&ensp;&ensp;***说明***
 
-   （1）览沃 ROS 驱动程序的时间戳同步功能是基于 Livox-SDK 的 LidarSetUtcSyncTime 接口实现，且只支持 GPS 同步，是览沃设备多种同步方式的一种；
+&ensp;&ensp;&ensp;&ensp;（1）览沃 ROS 驱动程序的时间戳同步功能是基于 Livox-SDK 的 LidarSetUtcSyncTime 接口实现，且只支持 GPS 同步，是览沃设备多种同步方式的一种；
 
-   （2）务必将 GPS 的 GPRMC/GNRMC 时间信息的输出频率设置为 1Hz，其他频率不推荐；
+&ensp;&ensp;&ensp;&ensp;（2）务必将 GPS 的 GPRMC/GNRMC 时间信息的输出频率设置为 1Hz，其他频率不推荐；
 
-   （3）GPRMC/GNRMC 格式字符串示例如下：
+&ensp;&ensp;&ensp;&ensp;（3）GPRMC/GNRMC 格式字符串示例如下：
 
 ```bash
 
-$GNRMC,143909.00,A,5107.0020216,N,11402.3294835,W,0.036,348.3,210307,0.0,E,A*31
-$GNRMC,021225.00,A,3016.60101,N,12007.84214,E,0.011,,260420,,,A*67
-$GPRMC,010101.130,A,3606.6834,N,12021.7778,E,0.0,238.3,010807,,,A*6C
-$GPRMC,092927.000,A,2235.9058,N,11400.0518,E,0.000,74.11,151216,,D*49
-$GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
+　　$GNRMC,143909.00,A,5107.0020216,N,11402.3294835,W,0.036,348.3,210307,0.0,E,A*31
+　　$GNRMC,021225.00,A,3016.60101,N,12007.84214,E,0.011,,260420,,,A*67
+　　$GPRMC,010101.130,A,3606.6834,N,12021.7778,E,0.0,238.3,010807,,,A*6C
+　　$GPRMC,092927.000,A,2235.9058,N,11400.0518,E,0.000,74.11,151216,,D*49
+　　$GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
 
 ```
 
@@ -260,7 +260,8 @@ $GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
 
 览沃 ROS 驱动程序只有在与 LiDAR 连接的时候才支持时间戳同步功能，时间戳相关的配置项 timesync_config 位于 livox_lidar_config.json 文件中，详细的配置内容见下表：
 
-​                                                              时间戳同步功能配置说明
+<center>时间戳同步功能配置说明</center>
+
 | 属性             | 类型   | 描述                                                         | 默认值         |
 | ---------------- | ------ | ------------------------------------------------------------ | -------------- |
 | enable_timesync  | 布尔值 | 是否使能时间戳同步功能<br>true -- 使能时间戳同步功能<br>false -- 禁止时间戳同步功能 | false          |
@@ -273,6 +274,13 @@ $GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
 
 览沃 ROS 驱动程序支持 lvx 点云数据文件转换为 rosbag 文件，具体命令如下：
 
-​    `roslaunch livox_ros_driver lvx_to_rosbag.launch lvx_file_path:="/home/livox/test.lvx"`
+`roslaunch livox_ros_driver lvx_to_rosbag.launch lvx_file_path:="/home/livox/test.lvx"`
 
 替换如上命令中的 "/home/livox/test.lvx"  为本地 lvx 数据文件路径后，直接运行即可；如果转换成功，将会在上述路径下产生同名 rosbag 格式点云数据文件。
+
+## 8. 支持
+
+你可以通过以下方式获取 Livox 的技术支持 :
+
+* 发送邮件到 dev@livoxtech.com ，详细描述您遇到的问题和使用场景
+* 提交此代码仓的　github issues
