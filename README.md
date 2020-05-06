@@ -59,7 +59,7 @@ For ROS installation, please refer to the ROS installation guide :
 
 &ensp;&ensp;&ensp;&ensp;***Note:***
 
-&ensp;&ensp;&ensp;&ensp;(1) the json configuration file is in the "ws_livox/src/livox_ros_driver / config" directory;
+&ensp;&ensp;&ensp;&ensp;(1) the json configuration file is in the "ws_livox/src/livox_ros_driver/config" directory;
 
 &ensp;&ensp;&ensp;&ensp;(2) When the connection status of the devices specified in the configuration file is all configured to prohibit connection (false), livox_ros_driver will automatically connect all the devices that are scanned;
 
@@ -77,13 +77,13 @@ For ROS installation, please refer to the ROS installation guide :
 
 &ensp;&ensp;&ensp;&ensp;***Note:***
 
-&ensp;&ensp;&ensp;&ensp;X in the figure above corresponds to 1 in MID-100_Left / MID-40 / Horizon / Tele products, 2 in MID-100_Middle, and 3 in MID-100_Right.
+&ensp;&ensp;&ensp;&ensp;X in the figure above corresponds to 1 in MID-100_Left/MID-40/Horizon/Tele products, 2 in MID-100_Middle, and 3 in MID-100_Right.
 
 ## 4. Launch file and livox_ros_driver internal parameter configuration instructions
 
 ### 4.1 Launch file configuration instructions
 
-All launch files of livox_ros_driver are in the "ws_livox / src / livox_ros_driver / launch" directory. Different launch files have different configuration parameter values and are used in different scenarios :
+All launch files of livox_ros_driver are in the "ws_livox/src/livox_ros_driver/launch" directory. Different launch files have different configuration parameter values and are used in different scenarios :
 
 | launch file name          | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |
@@ -226,7 +226,7 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 
 ### 6.1 Hardware requirements
 
-Prepare a GPS device to ensure that the GPS can output UTC time information in GPRMC / GNRMC format through the serial port or USB virtual serial port, and support PPS signal output; then connect the GPS serial port to the host running livox_ros_driver, and connect the GPS PPS signal line to LiDAR. For detailed connection instructions and more introduction to time stamp synchronization, please refer to the following links:
+Prepare a GPS device to ensure that the GPS can output UTC time information in GPRMC/GNRMC format through the serial port or USB virtual serial port, and support PPS signal output; then connect the GPS serial port to the host running livox_ros_driver, and connect the GPS PPS signal line to LiDAR. For detailed connection instructions and more introduction to time stamp synchronization, please refer to the following links:
 
 [Timestamp synchronization](https://github.com/Livox-SDK/Livox-SDK/wiki/Timestamp-Synchronization)
 
@@ -234,9 +234,9 @@ Prepare a GPS device to ensure that the GPS can output UTC time information in G
 
 &ensp;&ensp;&ensp;&ensp;(1) The time stamp synchronization function of livox_ros_driver is based on the LidarSetUtcSyncTime interface of Livox-SDK, and only supports GPS synchronization, which is one of many synchronization methods of livox devices.
 
-&ensp;&ensp;&ensp;&ensp;(2) Be sure to set the output frequency of GPRMC / GNRMC time information of GPS to 1Hz, other frequencies are not recommended.
+&ensp;&ensp;&ensp;&ensp;(2) Be sure to set the output frequency of GPRMC/GNRMC time information of GPS to 1Hz, other frequencies are not recommended.
 
-&ensp;&ensp;&ensp;&ensp;(3) Examples of GPRMC / GNRMC format strings are as follows :
+&ensp;&ensp;&ensp;&ensp;(3) Examples of GPRMC/GNRMC format strings are as follows :
 
 ```bash
 $GNRMC,143909.00,A,5107.0020216,N,11402.3294835,W,0.036,348.3,210307,0.0,E,A*31
@@ -255,7 +255,7 @@ livox_ros_driver only supports the timestamp synchronization function when conne
 | Parameter        | Type     | Description                                                  | Default        |
 | ---------------- | -------- | ------------------------------------------------------------ | -------------- |
 | enable_timesync  | Boolean  | Whether to enable the timestamp synchronization <br>true -- Enable timestamp synchronization<br>false -- Disable timestamp synchronization | false          |
-| device_name      | String | Name of the serial device to be connected, take "/ dev / ttyUSB0" as an example, indicating that the device sending timestamp information to livox_ros_driver is ttyUSB0 | "/dev/ttyUSB0" |
+| device_name      | String | Name of the serial device to be connected, take "/dev/ttyUSB0" as an example, indicating that the device sending timestamp information to livox_ros_driver is ttyUSB0 | "/dev/ttyUSB0" |
 | comm_device_type | Int      | Type of device sending timestamp information<br>0 -- Serial port or USB virtual serial port device<br>other -- not support | 0              |
 | baudrate_index   | Int      | Baud rate of serial device<br>0 -- 2400 <br>1 -- 4800 <br>2 -- 9600 <br>3 -- 19200 <br>4 -- 38400 <br>5 -- 57600 <br>6 -- 115200 <br>7 -- 230400 <br>8 -- 460800 <br>9 -- 500000 <br>10 -- 576000 <br>11 -- 921600 | 2              |
 | parity_index     | Int      | parity type<br>0 -- 8bits data without parity<br>1 -- 7bits data 1bit even parity<br>2 -- 7bits data 1bit odd parity<br>3 -- 7bits data 1bit 0, without parity | 0              |
