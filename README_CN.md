@@ -283,4 +283,4 @@ uint8 line              # laser number in lidar
 你可以通过以下方式获取 Livox 的技术支持 :
 
 * 发送邮件到 dev@livoxtech.com ，详细描述您遇到的问题和使用场景
-* 提交此代码仓的　github issues
+* 提交此代码仓的 github issues
