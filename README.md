@@ -12,7 +12,7 @@ For ROS installation, please refer to the ROS installation guide :
 
 [ROS installation guide](https://www.ros.org/install/)
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;(1) Be sure to install the full version of ROS (ros-distro-desktop-full);
 
@@ -30,7 +30,7 @@ For ROS installation, please refer to the ROS installation guide :
 
 　　`git clone https://github.com/Livox-SDK/livox_ros_driver.git ws_livox/src`
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;Be sure to use the above command to clone the code to the local, otherwise it will compile error due to the file path problem.
 
@@ -57,7 +57,7 @@ For ROS installation, please refer to the ROS installation guide :
 
 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;When the connection status of the device specified in the configuration file is configured to enable connection (true), the livox_ros_driver will only connect to the device specified in the configuration file;
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;(1) the json configuration file is in the "ws_livox/src/livox_ros_driver/config" directory;
 
@@ -75,7 +75,7 @@ For ROS installation, please refer to the ROS installation guide :
 
 &ensp;&ensp;&ensp;&ensp;![Broadcast Code](images/broadcast_code.png)
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;X in the figure above corresponds to 1 in MID-100_Left/MID-40/Horizon/Tele products, 2 in MID-100_Middle, and 3 in MID-100_Right.
 
@@ -106,7 +106,7 @@ All internal parameters of Livox_ros_driver are in the launch file. Below are de
 | multi_topic  | If the LiDAR device has an independent topic to publish pointcloud data<br>0 -- All LiDAR devices use the same topic to publish pointcloud data<br>1 -- Each LiDAR device has its own topic to publish point cloud data | 0       |
 | xfer_format  | Set pointcloud format<br>0 -- Livox pointcloud2(PointXYZRTL) pointcloud format<br>1 -- Livox customized pointcloud format<br>2 -- Standard pointcloud2 (pcl :: PointXYZI) pointcloud format in the PCL library | 0       |
 
-&ensp;&ensp;&ensp;&ensp;***Livox_ros_driver pointcloud data detailed description : ***
+&ensp;&ensp;&ensp;&ensp;***Livox_ros_driver pointcloud data detailed description :***
 
 1. Livox pointcloud2 (PointXYZRTL) point cloud format, as follows :
 
@@ -216,7 +216,7 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 | enable_connect | Boolean | Whether to connect to this Hub<br>true -- Connecting to this Hub means that all LiDAR data connected to this Hub will be received<br>false -- Prohibition of connection to this Hub means that all LiDAR data connected to this Hub will not be received | false           |
 | coordinate     | Int     | Coordinate<br>0 -- Cartesian<br>1 -- Spherical             | 0               |
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;(1) The configuration parameters enable_connect and coordinate in the Hub configuration item "hub_config" are global and control the behavior of all LiDARs. Therefore, the LiDAR related configuration in the Hub json configuration file does not include these two contents.
 
@@ -230,7 +230,7 @@ Prepare a GPS device to ensure that the GPS can output UTC time information in G
 
 [Timestamp synchronization](https://github.com/Livox-SDK/Livox-SDK/wiki/Timestamp-Synchronization)
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;(1) The time stamp synchronization function of livox_ros_driver is based on the LidarSetUtcSyncTime interface of Livox-SDK, and only supports GPS synchronization, which is one of many synchronization methods of livox devices.
 
