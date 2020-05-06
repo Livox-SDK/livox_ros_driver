@@ -182,7 +182,7 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 | imu_rate                   | Int     | Push frequency of IMU sensor data<br>0 -- stop push<br>1 -- 200 Hz<br>Others -- undefined, it will cause unpredictable behavior<br>Currently only Horizon supports this, MID serials do not support it | 0               |
 | extrinsic_parameter_source | Int     | Whether to enable extrinsic parameter automatic compensation<br>0 -- Disable automatic compensation of LiDAR external reference<br>1 -- Automatic compensation of LiDAR external reference | 0               |
 
-&ensp;&ensp;&ensp;&ensp;***Note : ***
+&ensp;&ensp;&ensp;&ensp;***Note :***
 
 &ensp;&ensp;&ensp;&ensp;When connecting multiple LiDAR, if you want to use the external parameter automatic compensation function, you must first use the livox viewer to calibrate the external parameters and save them to LiDAR.
 
