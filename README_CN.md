@@ -198,7 +198,7 @@ uint8 line              # laser number in lidar
    ```json
 
    {
-   　　"hub_config": {
+      "hub_config": {
          "broadcast_code": "13UUG1R00400170",
          "enable_connect": true,
          "coordinate": 0
