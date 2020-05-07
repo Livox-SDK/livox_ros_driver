@@ -268,7 +268,13 @@ livox_ros_driver supports the conversion of lvx pointcloud data files to rosbag 
 
 After replacing "/home/livox/test.lvx" in the above command with the local lvx data file path, you can simply run it; if the conversion is successful, a rosbag format file with the same name will be generated under the above path.
 
-## 8. Support
+## 8. Application Documents
+
+* [How to use lvx file in ros](https://github.com/Livox-SDK/Livox-SDK/wiki/how_to_use_lvx_file_in_ros)
+* [Set publish frequency](https://github.com/Livox-SDK/Livox-SDK/wiki/set_publish_frequency)
+* [外参标定与点云显示](https://github.com/Livox-SDK/Livox-SDK/wiki/calibrate_extrinsic_and_display_in_ros_cn)
+
+## 9. Support
 
 You can get support from Livox with the following methods :
 

@@ -278,7 +278,13 @@ uint8 line              # laser number in lidar
 
 替换如上命令中的 "/home/livox/test.lvx"  为本地 lvx 数据文件路径后，直接运行即可；如果转换成功，将会在上述路径下产生同名 rosbag 格式点云数据文件。
 
-## 8. 支持
+## 8. 应用文档
+
+* [How to use lvx file in ros](https://github.com/Livox-SDK/Livox-SDK/wiki/how_to_use_lvx_file_in_ros)
+* [Set publish frequency](https://github.com/Livox-SDK/Livox-SDK/wiki/set_publish_frequency)
+* [外参标定与点云显示](https://github.com/Livox-SDK/Livox-SDK/wiki/calibrate_extrinsic_and_display_in_ros_cn)
+
+## 9. 支持
 
 你可以通过以下方式获取 Livox 的技术支持 :
 
