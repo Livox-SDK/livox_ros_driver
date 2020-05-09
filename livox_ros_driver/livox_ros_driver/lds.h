@@ -169,6 +169,7 @@ typedef struct {
   bool data_is_pubulished; /**< Indicate the data of lidar whether is
                               pubulished. */
   volatile LidarConnectState connect_state;
+  uint8_t pointcloud_data_type;
   DeviceInfo info;
   LidarPacketStatistic statistic_info;
   LidarDataQueue data;
@@ -220,7 +221,7 @@ const PacketInfoPair packet_info_pair_table[kMaxPointDataType] = {
     {100, 100000, 10000, 1000000, 1318}, {100, 100000, 10000, 1000000, 918},
     {96, 240000, 4167, 400000, 1362},    {96, 240000, 4167, 400000, 978},
     {96, 480000, 4167, 400000, 1362},    {48, 480000, 4167, 400000, 978},
-    {1, 100, 10000000, 10000000, 42}};
+    {1, 200, 10000000, 10000000, 42}};
 
 /**
  * Global function for general use.

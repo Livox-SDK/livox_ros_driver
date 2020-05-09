@@ -162,6 +162,10 @@ void LdsHub::OnHubDataCb(uint8_t hub_handle, LivoxEthPacket *data,
          sizeof(cur_timestamp));
 
   if (kImu != eth_packet->data_type) {
+    if (p_lidar->pointcloud_data_type != eth_packet->data_type) {
+      p_lidar->pointcloud_data_type = eth_packet->data_type;
+    }
+    
     if (eth_packet->timestamp_type == kTimestampTypePps) {
       /** Whether a new sync frame */
       if ((cur_timestamp.stamp < packet_statistic->last_timestamp) &&
@@ -210,7 +214,7 @@ void LdsHub::OnHubDataCb(uint8_t hub_handle, LivoxEthPacket *data,
              p_lidar->info.broadcast_code, queue_size, p_queue->size);
     }
 
-    if (!QueueIsFull(p_queue) && (cur_timestamp.stamp >= 0)) {
+    if (!QueueIsFull(p_queue)) {
       QueuePushAny(p_queue, (uint8_t *)eth_packet,
                    GetEthPacketLen(eth_packet->data_type),
                    packet_statistic->imu_timebase,
