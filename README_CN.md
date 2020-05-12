@@ -280,9 +280,9 @@ uint8 line              # laser number in lidar
 
 ## 8. 应用文档
 
-* [How to use lvx file in ros](https://github.com/Livox-SDK/Livox-SDK/wiki/how_to_use_lvx_file_in_ros)
-* [Set publish frequency](https://github.com/Livox-SDK/Livox-SDK/wiki/set_publish_frequency)
-* [外参标定与点云显示](https://github.com/Livox-SDK/Livox-SDK/wiki/calibrate_extrinsic_and_display_in_ros_cn)
+* [How to use lvx file in ros](https://github.com/Livox-SDK/Livox-SDK/wiki/How-to-use-lvx-file-under-ros)
+* [Set publish frequency](https://github.com/Livox-SDK/Livox-SDK/wiki/Set-publish-frequency)
+* [外参标定与点云显示](https://github.com/Livox-SDK/Livox-SDK/wiki/Calibrate-extrinsic-and-display-under-ros-cn)
 
 ## 9. 支持
 
