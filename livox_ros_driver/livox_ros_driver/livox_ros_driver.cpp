@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
   }
 
   ros::Time::init();
-  double poll_freq = publish_freq;
+  double poll_freq = publish_freq * 4;
   if (data_src == kSourceLvxFile) {
     poll_freq = 2000;
   }
