@@ -65,16 +65,18 @@ int main(int argc, char **argv) {
   int data_src = kSourceRawLidar;
   double publish_freq = 20.0; /* Hz */
   int output_type = kOutputToRos;
+  std::string frame_id = "livox_frame";
 
   livox_node.getParam("xfer_format", xfer_format);
   livox_node.getParam("multi_topic", multi_topic);
   livox_node.getParam("data_src", data_src);
   livox_node.getParam("publish_freq", publish_freq);
   livox_node.getParam("output_data_type", output_type);
+  livox_node.getParam("frame_id", frame_id);
 
   /** Lidar data distribute control and lidar data source set */
   Lddc *lddc =
-      new Lddc(xfer_format, multi_topic, data_src, output_type, publish_freq);
+      new Lddc(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id);
   lddc->SetRosNode(&livox_node);
 
   int ret = 0;

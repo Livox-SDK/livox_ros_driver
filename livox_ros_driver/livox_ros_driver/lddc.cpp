@@ -46,9 +46,9 @@ typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
 /** Lidar Data Distribute Control
  * ----------------------------------------------------------------*/
 Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
-           double frq)
+           double frq, std::string frame_id)
     : transfer_format_(format), use_multi_topic_(multi_topic),
-      data_src_(data_src), output_type_(output_type), publish_frq_(frq) {
+      data_src_(data_src), output_type_(output_type), publish_frq_(frq), frame_id_(frame_id) {
 
   publish_interval_ms_ = 1000 / publish_frq_;
   lds_ = nullptr;
@@ -95,7 +95,7 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
   uint32_t published_packet = 0;
   sensor_msgs::PointCloud2 cloud;
 
-  cloud.header.frame_id = "livox_frame";
+  cloud.header.frame_id = frame_id_;
   cloud.height = 1;
   cloud.width = 0;
 
@@ -218,7 +218,7 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
 
   /* init point cloud data struct */
   PointCloud::Ptr cloud(new PointCloud);
-  cloud->header.frame_id = "livox_frame";
+  cloud->header.frame_id = frame_id_;
   // cloud->header.stamp = ros::Time::now();
   cloud->height = 1;
   cloud->width = 0;
@@ -316,7 +316,7 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
 
   livox_ros_driver::CustomMsg livox_msg;
 
-  livox_msg.header.frame_id = "livox_frame";
+  livox_msg.header.frame_id = frame_id_;
   livox_msg.header.seq = msg_seq;
   ++msg_seq;
   // livox_msg.header.stamp = ros::Time::now();
@@ -418,7 +418,7 @@ uint32_t Lddc::PublishImuData(LidarDataQueue *queue, uint32_t packet_num,
   uint32_t published_packet = 0;
 
   sensor_msgs::Imu imu_data;
-  imu_data.header.frame_id = "livox_frame";
+  imu_data.header.frame_id = frame_id_;
 
   uint8_t data_source = lds_->lidars_[handle].data_src;
   StoragePacket storage_packet;
