@@ -95,11 +95,12 @@ typedef enum {
 typedef enum { kCoordinateCartesian = 0, kCoordinateSpherical } CoordinateType;
 
 typedef enum {
-  kConfigFan = 1,
-  kConfigReturnMode = 2,
-  kConfigCoordinate = 4,
-  kConfigImuRate = 8,
-  kConfigGetExtrinsicParameter = 16,
+  kConfigFan = 1 << 0,
+  kConfigReturnMode = 1 << 1,
+  kConfigCoordinate = 1 << 2,
+  kConfigImuRate    = 1 << 3,
+  kConfigGetExtrinsicParameter = 1 << 4,
+  kConfigSetHighSensitivity    = 1 << 5,  
   kConfigUndef
 } LidarConfigCodeBit;
 
@@ -139,6 +140,7 @@ typedef struct {
   uint32_t coordinate;
   uint32_t imu_rate;
   uint32_t extrinsic_parameter_source;
+  bool enable_high_sensitivity;
 } UserRawConfig;
 
 typedef struct {
@@ -147,6 +149,7 @@ typedef struct {
   uint32_t coordinate;
   uint32_t imu_rate;
   uint32_t extrinsic_parameter_source;
+  bool enable_high_sensitivity;
   volatile uint32_t set_bits;
   volatile uint32_t get_bits;
 } UserConfig;
@@ -166,10 +169,14 @@ typedef struct {
 typedef struct {
   uint8_t handle;          /**< Lidar access handle. */
   uint8_t data_src;        /**< From raw lidar or livox file. */
+  uint8_t raw_data_type;   /**< The data type in eth packaet */
   bool data_is_pubulished; /**< Indicate the data of lidar whether is
-                              pubulished. */
+                                pubulished. */
+  volatile uint32_t packet_interval;/**< The time interval between packets 
+                                       of current lidar, unit:ns */
+  volatile uint32_t packet_interval_max; /**< If more than it,
+                                            have packet loss */                            
   volatile LidarConnectState connect_state;
-  uint8_t pointcloud_data_type;
   DeviceInfo info;
   LidarPacketStatistic statistic_info;
   LidarDataQueue data;

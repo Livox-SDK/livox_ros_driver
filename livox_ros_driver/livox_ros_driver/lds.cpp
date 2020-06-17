@@ -441,6 +441,7 @@ void Lds::ResetLidar(LidarDevice *lidar, uint8_t data_src) {
   lidar->data_src = data_src;
   lidar->data_is_pubulished = false;
   lidar->connect_state = kConnectStateOff;
+  lidar->raw_data_type = 0xFF;
 }
 
 void Lds::SetLidarDataSrc(LidarDevice *lidar, uint8_t data_src) {

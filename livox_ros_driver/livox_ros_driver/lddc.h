@@ -41,7 +41,8 @@ typedef enum {
 
 class Lddc {
 public:
-  Lddc(int format, int multi_topic, int data_src, int output_type, double frq);
+  Lddc(int format, int multi_topic, int data_src, int output_type, double frq, \
+       std::string &frame_id);
   ~Lddc();
 
   int RegisterLds(Lds *lds);
@@ -59,6 +60,8 @@ public:
   Lds *lds_;
 
 private:
+  int32_t GetPublishStartTime(LidarDevice *lidar, LidarDataQueue *queue,
+      uint64_t *start_time, StoragePacket *storage_packet);
   uint32_t PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
                               uint8_t handle);
   uint32_t PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
@@ -78,7 +81,8 @@ private:
   uint8_t data_src_;
   uint8_t output_type_;
   double publish_frq_;
-  int32_t publish_interval_ms_;
+  uint32_t publish_period_ns_;
+  std::string frame_id_;
   ros::Publisher *private_pub_[kMaxSourceLidar];
   ros::Publisher *global_pub_;
   ros::Publisher *private_imu_pub_[kMaxSourceLidar];

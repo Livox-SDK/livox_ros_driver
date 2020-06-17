@@ -161,11 +161,18 @@ void LdsLvx::ReadLvxFile() {
           eth_packet = (LivoxEthPacket *)(&detail_packet->version);
           handle = detail_packet->device_index;
         }
+
         data_type = eth_packet->data_type;
-        data_offset +=
-            (GetEthPacketLen(data_type) + 1); /* packet length + device index */
+        /** Packet length + device index */
+        data_offset += (GetEthPacketLen(data_type) + 1); 
         if (data_type != kImu) {
+          LidarDevice *p_lidar = &lidars_[handle];
           LidarDataQueue *p_queue = &lidars_[handle].data;
+          if (p_lidar->raw_data_type != eth_packet->data_type) {
+            p_lidar->raw_data_type = eth_packet->data_type;
+            p_lidar->packet_interval = GetPacketInterval(eth_packet->data_type);
+            p_lidar->packet_interval_max = p_lidar->packet_interval * 1.8f;
+          }          
           if ((p_queue != nullptr) && (handle < lidar_count_)) {
             while (QueueIsFull(p_queue)) {
               std::this_thread::sleep_for(std::chrono::milliseconds(1));

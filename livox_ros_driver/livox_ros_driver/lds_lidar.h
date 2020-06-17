@@ -29,6 +29,7 @@
 
 #include <memory>
 #include <vector>
+#include <mutex>
 
 #include "lds.h"
 #include "livox_sdk.h"
@@ -87,6 +88,8 @@ private:
   GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle,
                                LidarGetExtrinsicParameterResponse *response,
                                void *clent_data);
+  static void SetHighSensitivityCb(livox_status status, uint8_t handle,
+      DeviceParameterResponse *response, void *clent_data);
 
   void ResetLdsLidar(void);
   int AddBroadcastCodeToWhitelist(const char *broadcast_code);
@@ -110,6 +113,7 @@ private:
   bool enable_timesync_;
   TimeSync *timesync_;
   TimeSyncConfig timesync_config_;
+  std::mutex config_mutex_;
 };
 
 } // namespace livox_ros
