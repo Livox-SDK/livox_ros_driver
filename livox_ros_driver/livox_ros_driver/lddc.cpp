@@ -66,7 +66,7 @@ Lddc::~Lddc() {
   }
 
   if (global_imu_pub_) {
-    delete global_pub_;
+    delete global_imu_pub_;
   }
 
   if (lds_) {
