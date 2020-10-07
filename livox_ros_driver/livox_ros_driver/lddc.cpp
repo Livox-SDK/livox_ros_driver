@@ -89,7 +89,7 @@ Lddc::~Lddc() {
 int32_t Lddc::GetPublishStartTime(LidarDevice *lidar, LidarDataQueue *queue,
     uint64_t *start_time,StoragePacket *storage_packet) {
   QueueProPop(queue, storage_packet);
-  uint64_t timestamp = GetStoragePacketTimestamp(storage_packet, 
+  uint64_t timestamp = GetStoragePacketTimestamp(storage_packet,
                                                  lidar->data_src);
   uint32_t remaining_time = timestamp % publish_period_ns_;
   uint32_t diff_time = publish_period_ns_ - remaining_time;
@@ -102,16 +102,16 @@ int32_t Lddc::GetPublishStartTime(LidarDevice *lidar, LidarDataQueue *queue,
     *start_time = timestamp;
     return 0;
   } else {
-    /** Skip some packets up to the period boundary*/ 
+    /** Skip some packets up to the period boundary*/
     //ROS_INFO("2 : %u", diff_time);
     do {
       if (QueueIsEmpty(queue)) {
         break;
       }
-      QueuePopUpdate(queue); /* skip packet */      
+      QueuePopUpdate(queue); /* skip packet */
       QueueProPop(queue, storage_packet);
       uint32_t last_remaning_time = remaining_time;
-      timestamp = GetStoragePacketTimestamp(storage_packet, 
+      timestamp = GetStoragePacketTimestamp(storage_packet,
                                             lidar->data_src);
       remaining_time = timestamp % publish_period_ns_;
       /** Flip to another period */
@@ -121,7 +121,7 @@ int32_t Lddc::GetPublishStartTime(LidarDevice *lidar, LidarDataQueue *queue,
       }
       diff_time = publish_period_ns_ - remaining_time;
     } while (diff_time > lidar->packet_interval);
-      
+
     /* the remaning packets in queue maybe not enough after skip */
     return -1;
   }
@@ -131,6 +131,7 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
                                   uint8_t handle) {
   uint64_t timestamp = 0;
   uint64_t last_timestamp = 0;
+  uint64_t timebase = 0;
   uint32_t published_packet = 0;
 
   StoragePacket storage_packet;
@@ -139,12 +140,12 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
     /* the remaning packets in queue maybe not enough after skip */
     return 0;
   }
-  
+
   sensor_msgs::PointCloud2 cloud;
   cloud.header.frame_id.assign(frame_id_);
   cloud.height = 1;
   cloud.width  = 0;
-  cloud.fields.resize(6);
+  cloud.fields.resize(7);
   cloud.fields[0].offset = 0;
   cloud.fields[0].name = "x";
   cloud.fields[0].count = 1;
@@ -169,53 +170,87 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
   cloud.fields[5].name = "line";
   cloud.fields[5].count = 1;
   cloud.fields[5].datatype = sensor_msgs::PointField::UINT8;
+  cloud.fields[6].offset = 18;
+  cloud.fields[6].name = "timeoffset";
+  cloud.fields[6].count = 1;
+  cloud.fields[6].datatype = sensor_msgs::PointField::UINT32;
 
+  uint32_t pointSize = (sizeof(LivoxPointXyzrtl) + 4);
   cloud.data.resize(packet_num * kMaxPointPerEthPacket *
-                    sizeof(LivoxPointXyzrtl));
-  cloud.point_step = sizeof(LivoxPointXyzrtl);
+                    pointSize);
+  cloud.point_step = pointSize; // 4 additional bytes for timeoffset
   uint8_t *point_base = cloud.data.data();
+  uint8_t *data_start = point_base;
   uint8_t data_source = lidar->data_src;
-  while ((published_packet < packet_num) && !QueueIsEmpty(queue)) {
+  uint32_t packet_offset_time = 0; // ns
+
+  while (published_packet < packet_num) {
     QueueProPop(queue, &storage_packet);
     LivoxEthPacket *raw_packet =
         reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
-    timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
-    int64_t packet_gap = timestamp - last_timestamp;
-    if ((packet_gap > lidar->packet_interval_max) && 
-        lidar->data_is_pubulished) {
-      //ROS_INFO("Lidar[%d] packet time interval is %ldns", handle, packet_gap);
-      if (kSourceLvxFile != data_source) {
-        point_base = FillZeroPointXyzrtl(point_base, storage_packet.point_num);
-        cloud.width += storage_packet.point_num;
-        last_timestamp = last_timestamp + lidar->packet_interval;
-        if (!published_packet) { 
-          cloud.header.stamp = ros::Time(last_timestamp / 1000000000.0);
-        }
-        ++published_packet;
-        continue;
-      }
-    }
-    /** Use the first packet timestamp as pointcloud2 msg timestamp */
-    if (!published_packet) { 
-      cloud.header.stamp = ros::Time(timestamp / 1000000000.0);
-    }
-    cloud.width += storage_packet.point_num;
+    uint32_t point_interval = GetPointInterval(lidar->raw_data_type);
+    uint32_t dual_point = 0;
 
+    if ((raw_packet->data_type == kDualExtendCartesian) ||
+        (raw_packet->data_type == kDualExtendSpherical)) {
+      dual_point = 1;
+    }
+
+    timestamp = GetStoragePacketTimestamp(&storage_packet, data_source);
+    if (((timestamp - last_timestamp) > kDeviceDisconnectThreshold) &&
+        published_packet && lidar->data_is_pubulished) {
+      ROS_INFO("Lidar[%d] packet loss", handle);
+      break;
+    }
+    if (!published_packet) {
+      timebase = timestamp;
+      packet_offset_time = 0;         // first packet
+      // ROS_DEBUG("[%d]:%ld %d", handle, livox_msg.timebase, point_interval);
+    } else {
+      packet_offset_time = (uint32_t)(timestamp - timebase);
+    }
+
+    uint8_t point_buf[2048];
     if (kSourceLvxFile != data_source) {
       PointConvertHandler pf_point_convert =
           GetConvertHandler(lidar->raw_data_type);
       if (pf_point_convert) {
-        point_base = pf_point_convert(
-            point_base, raw_packet, lidar->extrinsic_parameter);
+        pf_point_convert(point_buf, raw_packet,
+                         lidar->extrinsic_parameter);
       } else {
-        /** Skip the packet */
+        /* Skip the packet */
         ROS_INFO("Lidar[%d] unkown packet type[%d]", handle,
-                 raw_packet->data_type);
+                 lidar->raw_data_type);
         break;
       }
     } else {
-      point_base = LivoxPointToPxyzrtl(
-          point_base, raw_packet, lidar->extrinsic_parameter);
+      LivoxPointToPxyzrtl(point_buf, raw_packet,
+                          lidar->extrinsic_parameter);
+    }
+
+    LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
+    for (uint32_t i = 0; i < storage_packet.point_num; i++) {
+      uint32_t offset = 0;
+      if (!dual_point) { /** dual return mode */
+        offset = packet_offset_time + i * point_interval;
+      } else {
+        offset = packet_offset_time + (i / 2) * point_interval;
+      }
+
+      float* p_float = reinterpret_cast<float *>(point_base);
+      *p_float++ = dst_point->x;
+      *p_float++ = dst_point->y;
+      *p_float++ = dst_point->z;
+      *p_float++ = dst_point->reflectivity;
+      uint8_t* p_char = reinterpret_cast<uint8_t *>(p_float);
+      *p_char++ = dst_point->tag;
+      *p_char++ = dst_point->line;
+      uint32_t* p_int = reinterpret_cast<uint32_t *>(p_char);
+      *p_int++ = offset;
+      point_base = reinterpret_cast<uint8_t *>(p_int);
+
+      ++dst_point;
+      cloud.width++;
     }
 
     QueuePopUpdate(queue);
@@ -223,6 +258,7 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
     ++published_packet;
   }
 
+  point_base = data_start;
   cloud.row_step = cloud.width * cloud.point_step;
   cloud.is_bigendian = false;
   cloud.is_dense = true;
@@ -281,7 +317,7 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
         cloud->points.push_back(point);
       }
       last_timestamp = last_timestamp + lidar->packet_interval;
-      if (!published_packet) { 
+      if (!published_packet) {
           cloud->header.stamp = last_timestamp / 1000.0; // to pcl ros time stamp
       }
       ++published_packet;
@@ -355,7 +391,7 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
 
   //livox_msg.header.frame_id = "livox_frame";
   livox_msg.header.frame_id.assign(frame_id_);
-  
+
   livox_msg.header.seq = msg_seq;
   ++msg_seq;
   // livox_msg.header.stamp = ros::Time::now();
@@ -366,12 +402,14 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
   LidarDevice *lidar  = &lds_->lidars_[handle];
   uint8_t data_source = lds_->lidars_[handle].data_src;
   StoragePacket storage_packet;
+
   while (published_packet < packet_num) {
     QueueProPop(queue, &storage_packet);
     LivoxEthPacket *raw_packet =
         reinterpret_cast<LivoxEthPacket *>(storage_packet.raw_data);
     uint32_t point_interval = GetPointInterval(lidar->raw_data_type);
     uint32_t dual_point = 0;
+
     if ((raw_packet->data_type == kDualExtendCartesian) ||
         (raw_packet->data_type == kDualExtendSpherical)) {
       dual_point = 1;
