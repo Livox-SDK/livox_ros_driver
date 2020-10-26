@@ -34,11 +34,11 @@
 // THL A29 Limited ("Tencent Modifications").
 // All Tencent Modifications are Copyright (C) 2015 THL A29 Limited.
 
-#ifndef _MSC_VER // [
+#ifndef _MSC_VER  // [
 #error "Use this header only with Microsoft Visual C++ compilers!"
-#endif // _MSC_VER ]
+#endif  // _MSC_VER ]
 
-#ifndef _MSC_INTTYPES_H_ // [
+#ifndef _MSC_INTTYPES_H_  // [
 #define _MSC_INTTYPES_H_
 
 #if _MSC_VER > 1000
@@ -61,8 +61,8 @@ typedef struct {
 
 // 7.8.1 Macros for format specifiers
 
-#if !defined(__cplusplus) ||                                                   \
-    defined(__STDC_FORMAT_MACROS) // [   See footnote 185 at page 198
+#if !defined(__cplusplus) || \
+    defined(__STDC_FORMAT_MACROS)  // [   See footnote 185 at page 198
 
 // The fprintf macros for signed integers are:
 #define PRId8 "d"
@@ -194,13 +194,13 @@ typedef struct {
 #define SCNdMAX "I64d"
 #define SCNiMAX "I64i"
 
-#ifdef _WIN64 // [
+#ifdef _WIN64  // [
 #define SCNdPTR "I64d"
 #define SCNiPTR "I64i"
-#else // _WIN64 ][
+#else  // _WIN64 ][
 #define SCNdPTR "ld"
 #define SCNiPTR "li"
-#endif // _WIN64 ]
+#endif  // _WIN64 ]
 
 // The fscanf macros for unsigned integers are:
 #define SCNo8 "o"
@@ -260,19 +260,19 @@ typedef struct {
 #define SCNxMAX "I64x"
 #define SCNXMAX "I64X"
 
-#ifdef _WIN64 // [
+#ifdef _WIN64  // [
 #define SCNoPTR "I64o"
 #define SCNuPTR "I64u"
 #define SCNxPTR "I64x"
 #define SCNXPTR "I64X"
-#else // _WIN64 ][
+#else  // _WIN64 ][
 #define SCNoPTR "lo"
 #define SCNuPTR "lu"
 #define SCNxPTR "lx"
 #define SCNXPTR "lX"
-#endif // _WIN64 ]
+#endif  // _WIN64 ]
 
-#endif // __STDC_FORMAT_MACROS ]
+#endif  // __STDC_FORMAT_MACROS ]
 
 // 7.8.2 Functions for greatest-width integer types
 
@@ -283,11 +283,11 @@ typedef struct {
 
 // This is modified version of div() function from Microsoft's div.c found
 // in %MSVC.NET%\crt\src\div.c
-#ifdef STATIC_IMAXDIV // [
+#ifdef STATIC_IMAXDIV  // [
 static
-#else                 // STATIC_IMAXDIV ][
+#else                  // STATIC_IMAXDIV ][
 _inline
-#endif                // STATIC_IMAXDIV ]
+#endif                 // STATIC_IMAXDIV ]
     imaxdiv_t __cdecl imaxdiv(intmax_t numer, intmax_t denom) {
   imaxdiv_t result;
 
@@ -311,6 +311,6 @@ _inline
 #define wcstoimax _wcstoi64
 #define wcstoumax _wcstoui64
 
-#endif // _MSC_VER >= 1800
+#endif  // _MSC_VER >= 1800
 
-#endif // _MSC_INTTYPES_H_ ]
+#endif  // _MSC_INTTYPES_H_ ]

@@ -24,17 +24,19 @@
 
 #include "timesync.h"
 
-#include <chrono>
-#include <functional>
 #include <stdint.h>
 #include <string.h>
+#include <chrono>
+#include <functional>
 #include <thread>
 
 namespace livox_ros {
 using namespace std;
 
 TimeSync::TimeSync()
-    : exit_poll_state_(false), start_poll_state_(false), exit_poll_data_(false),
+    : exit_poll_state_(false),
+      start_poll_state_(false),
+      exit_poll_data_(false),
       start_poll_data_(false) {
   fsm_state_ = kOpenDev;
   uart_ = nullptr;
@@ -78,10 +80,8 @@ int32_t TimeSync::InitTimeSync(const TimeSyncConfig &config) {
 int32_t TimeSync::DeInitTimeSync() {
   StopTimesync();
 
-  if (uart_)
-    delete uart_;
-  if (comm_)
-    delete comm_;
+  if (uart_) delete uart_;
+  if (comm_) delete comm_;
 
   fn_cb_ = nullptr;
   client_data_ = nullptr;
@@ -197,4 +197,4 @@ void TimeSync::FsmCheckDevState() {
   }
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

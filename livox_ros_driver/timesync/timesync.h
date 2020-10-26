@@ -25,10 +25,10 @@
 #ifndef TIMESYNC_TIMESYNC_H_
 #define TIMESYNC_TIMESYNC_H_
 
+#include <thread>
 #include "comm_device.h"
 #include "comm_protocol.h"
 #include "user_uart.h"
-#include <thread>
 
 namespace livox_ros {
 
@@ -43,7 +43,7 @@ typedef struct {
 } TimeSyncConfig;
 
 class TimeSync {
-public:
+ public:
   static TimeSync *GetInstance() {
     static TimeSync time_sync;
 
@@ -67,7 +67,7 @@ public:
     }
   }
 
-private:
+ private:
   TimeSync();
   ~TimeSync();
   TimeSync(const TimeSync &) = delete;
@@ -101,5 +101,5 @@ private:
   void FsmCheckDevState();
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

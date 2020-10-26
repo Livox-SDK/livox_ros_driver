@@ -25,7 +25,7 @@
 
 #include "diyfp.h"
 #include "ieee754.h"
-#include "itoa.h" // GetDigitsLut()
+#include "itoa.h"  // GetDigitsLut()
 
 RAPIDJSON_NAMESPACE_BEGIN
 namespace internal {
@@ -33,15 +33,14 @@ namespace internal {
 #ifdef __GNUC__
 RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(effc++)
-RAPIDJSON_DIAG_OFF(array -
-                   bounds) // some gcc versions generate wrong warnings
-                           // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
+RAPIDJSON_DIAG_OFF(array - bounds)  // some gcc versions generate wrong warnings
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
 #endif
 
 inline void GrisuRound(char *buffer, int len, uint64_t delta, uint64_t rest,
                        uint64_t ten_kappa, uint64_t wp_w) {
   while (rest < wp_w && delta - rest >= ten_kappa &&
-         (rest + ten_kappa < wp_w || /// closer
+         (rest + ten_kappa < wp_w ||  /// closer
           wp_w - rest > rest + ten_kappa - wp_w)) {
     buffer[len - 1]--;
     rest += ten_kappa;
@@ -51,22 +50,14 @@ inline void GrisuRound(char *buffer, int len, uint64_t delta, uint64_t rest,
 inline int CountDecimalDigit32(uint32_t n) {
   // Simple pure C++ implementation was faster than __builtin_clz version in
   // this situation.
-  if (n < 10)
-    return 1;
-  if (n < 100)
-    return 2;
-  if (n < 1000)
-    return 3;
-  if (n < 10000)
-    return 4;
-  if (n < 100000)
-    return 5;
-  if (n < 1000000)
-    return 6;
-  if (n < 10000000)
-    return 7;
-  if (n < 100000000)
-    return 8;
+  if (n < 10) return 1;
+  if (n < 100) return 2;
+  if (n < 1000) return 3;
+  if (n < 10000) return 4;
+  if (n < 100000) return 5;
+  if (n < 1000000) return 6;
+  if (n < 10000000) return 7;
+  if (n < 100000000) return 8;
   // Will not reach 10 digits in DigitGen()
   // if (n < 1000000000) return 9;
   // return 10;
@@ -82,49 +73,49 @@ inline void DigitGen(const DiyFp &W, const DiyFp &Mp, uint64_t delta,
   const DiyFp wp_w = Mp - W;
   uint32_t p1 = static_cast<uint32_t>(Mp.f >> -one.e);
   uint64_t p2 = Mp.f & (one.f - 1);
-  int kappa = CountDecimalDigit32(p1); // kappa in [0, 9]
+  int kappa = CountDecimalDigit32(p1);  // kappa in [0, 9]
   *len = 0;
 
   while (kappa > 0) {
     uint32_t d = 0;
     switch (kappa) {
-    case 9:
-      d = p1 / 100000000;
-      p1 %= 100000000;
-      break;
-    case 8:
-      d = p1 / 10000000;
-      p1 %= 10000000;
-      break;
-    case 7:
-      d = p1 / 1000000;
-      p1 %= 1000000;
-      break;
-    case 6:
-      d = p1 / 100000;
-      p1 %= 100000;
-      break;
-    case 5:
-      d = p1 / 10000;
-      p1 %= 10000;
-      break;
-    case 4:
-      d = p1 / 1000;
-      p1 %= 1000;
-      break;
-    case 3:
-      d = p1 / 100;
-      p1 %= 100;
-      break;
-    case 2:
-      d = p1 / 10;
-      p1 %= 10;
-      break;
-    case 1:
-      d = p1;
-      p1 = 0;
-      break;
-    default:;
+      case 9:
+        d = p1 / 100000000;
+        p1 %= 100000000;
+        break;
+      case 8:
+        d = p1 / 10000000;
+        p1 %= 10000000;
+        break;
+      case 7:
+        d = p1 / 1000000;
+        p1 %= 1000000;
+        break;
+      case 6:
+        d = p1 / 100000;
+        p1 %= 100000;
+        break;
+      case 5:
+        d = p1 / 10000;
+        p1 %= 10000;
+        break;
+      case 4:
+        d = p1 / 1000;
+        p1 %= 1000;
+        break;
+      case 3:
+        d = p1 / 100;
+        p1 %= 100;
+        break;
+      case 2:
+        d = p1 / 10;
+        p1 %= 10;
+        break;
+      case 1:
+        d = p1;
+        p1 = 0;
+        break;
+      default:;
     }
     if (d || *len)
       buffer[(*len)++] = static_cast<char>('0' + static_cast<char>(d));
@@ -143,8 +134,7 @@ inline void DigitGen(const DiyFp &W, const DiyFp &Mp, uint64_t delta,
     p2 *= 10;
     delta *= 10;
     char d = static_cast<char>(p2 >> -one.e);
-    if (d || *len)
-      buffer[(*len)++] = static_cast<char>('0' + d);
+    if (d || *len) buffer[(*len)++] = static_cast<char>('0' + d);
     p2 &= one.f - 1;
     kappa--;
     if (p2 < delta) {
@@ -194,12 +184,11 @@ inline char *WriteExponent(int K, char *buffer) {
 }
 
 inline char *Prettify(char *buffer, int length, int k, int maxDecimalPlaces) {
-  const int kk = length + k; // 10^(kk-1) <= v < 10^kk
+  const int kk = length + k;  // 10^(kk-1) <= v < 10^kk
 
   if (0 <= k && kk <= 21) {
     // 1234e7 -> 12340000000
-    for (int i = length; i < kk; i++)
-      buffer[i] = '0';
+    for (int i = length; i < kk; i++) buffer[i] = '0';
     buffer[kk] = '.';
     buffer[kk + 1] = '0';
     return &buffer[kk + 2];
@@ -212,9 +201,8 @@ inline char *Prettify(char *buffer, int length, int k, int maxDecimalPlaces) {
       // When maxDecimalPlaces = 2, 1.2345 -> 1.23, 1.102 -> 1.1
       // Remove extra trailing zeros (at least one) after truncation.
       for (int i = kk + maxDecimalPlaces; i > kk + 1; i--)
-        if (buffer[i] != '0')
-          return &buffer[i + 1];
-      return &buffer[kk + 2]; // Reserve one zero
+        if (buffer[i] != '0') return &buffer[i + 1];
+      return &buffer[kk + 2];  // Reserve one zero
     } else
       return &buffer[length + 1];
   } else if (-6 < kk && kk <= 0) {
@@ -223,15 +211,13 @@ inline char *Prettify(char *buffer, int length, int k, int maxDecimalPlaces) {
     std::memmove(&buffer[offset], &buffer[0], static_cast<size_t>(length));
     buffer[0] = '0';
     buffer[1] = '.';
-    for (int i = 2; i < offset; i++)
-      buffer[i] = '0';
+    for (int i = 2; i < offset; i++) buffer[i] = '0';
     if (length - kk > maxDecimalPlaces) {
       // When maxDecimalPlaces = 2, 0.123 -> 0.12, 0.102 -> 0.1
       // Remove extra trailing zeros (at least one) after truncation.
       for (int i = maxDecimalPlaces + 1; i > 2; i--)
-        if (buffer[i] != '0')
-          return &buffer[i + 1];
-      return &buffer[3]; // Reserve one zero
+        if (buffer[i] != '0') return &buffer[i + 1];
+      return &buffer[3];  // Reserve one zero
     } else
       return &buffer[length + offset];
   } else if (kk < -maxDecimalPlaces) {
@@ -257,8 +243,7 @@ inline char *dtoa(double value, char *buffer, int maxDecimalPlaces = 324) {
   RAPIDJSON_ASSERT(maxDecimalPlaces >= 1);
   Double d(value);
   if (d.IsZero()) {
-    if (d.Sign())
-      *buffer++ = '-'; // -0.0, Issue #289
+    if (d.Sign()) *buffer++ = '-';  // -0.0, Issue #289
     buffer[0] = '0';
     buffer[1] = '.';
     buffer[2] = '0';
@@ -278,7 +263,7 @@ inline char *dtoa(double value, char *buffer, int maxDecimalPlaces = 324) {
 RAPIDJSON_DIAG_POP
 #endif
 
-} // namespace internal
+}  // namespace internal
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_DTOA_
+#endif  // RAPIDJSON_DTOA_

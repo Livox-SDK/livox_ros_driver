@@ -25,37 +25,51 @@ RAPIDJSON_NAMESPACE_BEGIN
 
 // encodings.h
 
-template <typename CharType> struct UTF8;
-template <typename CharType> struct UTF16;
-template <typename CharType> struct UTF16BE;
-template <typename CharType> struct UTF16LE;
-template <typename CharType> struct UTF32;
-template <typename CharType> struct UTF32BE;
-template <typename CharType> struct UTF32LE;
-template <typename CharType> struct ASCII;
-template <typename CharType> struct AutoUTF;
+template <typename CharType>
+struct UTF8;
+template <typename CharType>
+struct UTF16;
+template <typename CharType>
+struct UTF16BE;
+template <typename CharType>
+struct UTF16LE;
+template <typename CharType>
+struct UTF32;
+template <typename CharType>
+struct UTF32BE;
+template <typename CharType>
+struct UTF32LE;
+template <typename CharType>
+struct ASCII;
+template <typename CharType>
+struct AutoUTF;
 
-template <typename SourceEncoding, typename TargetEncoding> struct Transcoder;
+template <typename SourceEncoding, typename TargetEncoding>
+struct Transcoder;
 
 // allocators.h
 
 class CrtAllocator;
 
-template <typename BaseAllocator> class MemoryPoolAllocator;
+template <typename BaseAllocator>
+class MemoryPoolAllocator;
 
 // stream.h
 
-template <typename Encoding> struct GenericStringStream;
+template <typename Encoding>
+struct GenericStringStream;
 
 typedef GenericStringStream<UTF8<char>> StringStream;
 
-template <typename Encoding> struct GenericInsituStringStream;
+template <typename Encoding>
+struct GenericInsituStringStream;
 
 typedef GenericInsituStringStream<UTF8<char>> InsituStringStream;
 
 // stringbuffer.h
 
-template <typename Encoding, typename Allocator> class GenericStringBuffer;
+template <typename Encoding, typename Allocator>
+class GenericStringBuffer;
 
 typedef GenericStringBuffer<UTF8<char>, CrtAllocator> StringBuffer;
 
@@ -69,7 +83,8 @@ class FileWriteStream;
 
 // memorybuffer.h
 
-template <typename Allocator> struct GenericMemoryBuffer;
+template <typename Allocator>
+struct GenericMemoryBuffer;
 
 typedef GenericMemoryBuffer<CrtAllocator> MemoryBuffer;
 
@@ -79,7 +94,8 @@ struct MemoryStream;
 
 // reader.h
 
-template <typename Encoding, typename Derived> struct BaseReaderHandler;
+template <typename Encoding, typename Derived>
+struct BaseReaderHandler;
 
 template <typename SourceEncoding, typename TargetEncoding,
           typename StackAllocator>
@@ -101,14 +117,17 @@ class PrettyWriter;
 
 // document.h
 
-template <typename Encoding, typename Allocator> class GenericMember;
+template <typename Encoding, typename Allocator>
+class GenericMember;
 
 template <bool Const, typename Encoding, typename Allocator>
 class GenericMemberIterator;
 
-template <typename CharType> struct GenericStringRef;
+template <typename CharType>
+struct GenericStringRef;
 
-template <typename Encoding, typename Allocator> class GenericValue;
+template <typename Encoding, typename Allocator>
+class GenericValue;
 
 typedef GenericValue<UTF8<char>, MemoryPoolAllocator<CrtAllocator>> Value;
 
@@ -121,7 +140,8 @@ typedef GenericDocument<UTF8<char>, MemoryPoolAllocator<CrtAllocator>,
 
 // pointer.h
 
-template <typename ValueType, typename Allocator> class GenericPointer;
+template <typename ValueType, typename Allocator>
+class GenericPointer;
 
 typedef GenericPointer<Value, CrtAllocator> Pointer;
 
@@ -130,7 +150,8 @@ typedef GenericPointer<Value, CrtAllocator> Pointer;
 template <typename SchemaDocumentType>
 class IGenericRemoteSchemaDocumentProvider;
 
-template <typename ValueT, typename Allocator> class GenericSchemaDocument;
+template <typename ValueT, typename Allocator>
+class GenericSchemaDocument;
 
 typedef GenericSchemaDocument<Value, CrtAllocator> SchemaDocument;
 typedef IGenericRemoteSchemaDocumentProvider<SchemaDocument>
@@ -146,4 +167,4 @@ typedef GenericSchemaValidator<
 
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_RAPIDJSONFWD_H_
+#endif  // RAPIDJSON_RAPIDJSONFWD_H_

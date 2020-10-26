@@ -24,13 +24,13 @@
 #ifndef LIVOX_FILE_H_
 #define LIVOX_FILE_H_
 
-#include "livox_sdk.h"
 #include <fstream>
 #include <ios>
 #include <list>
 #include <memory>
 #include <mutex>
 #include <vector>
+#include "livox_sdk.h"
 
 namespace livox_ros {
 
@@ -121,9 +121,7 @@ typedef struct {
   LvxFilePacket *packet;
 } LvxFileFrame;
 
-typedef struct {
-  uint8_t device_count;
-} LvxFilePrivateHeaderV0;
+typedef struct { uint8_t device_count; } LvxFilePrivateHeaderV0;
 
 typedef struct {
   uint8_t lidar_broadcast_code[16];
@@ -172,7 +170,7 @@ typedef struct {
 #pragma pack()
 
 class LvxFileHandle {
-public:
+ public:
   LvxFileHandle();
   ~LvxFileHandle() = default;
 
@@ -196,7 +194,7 @@ public:
   int GetLvxFileReadProgress();
   int GetFileVersion() { return file_ver_; }
 
-private:
+ private:
   std::fstream lvx_file_;
   std::vector<LvxFileDeviceInfo> device_info_list_;
   uint8_t file_ver_;
@@ -232,5 +230,5 @@ private:
   }
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

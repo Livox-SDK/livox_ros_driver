@@ -39,7 +39,7 @@ namespace livox_ros {
  * LiDAR data source, data from hub.
  */
 class LdsHub : public Lds {
-public:
+ public:
   static LdsHub *GetInstance(uint32_t interval_ms) {
     static LdsHub lds_hub(interval_ms);
     return &lds_hub;
@@ -49,7 +49,7 @@ public:
                  const char *user_config_path);
   int DeInitLdsHub(void);
 
-private:
+ private:
   LdsHub(uint32_t interval_ms);
   LdsHub(const LdsHub &) = delete;
   ~LdsHub();
@@ -69,16 +69,14 @@ private:
                                   void *client_data);
   static void ControlFanCb(livox_status status, uint8_t handle,
                            uint8_t response, void *clent_data);
-  static void
-  HubSetPointCloudReturnModeCb(livox_status status, uint8_t handle,
-                               HubSetPointCloudReturnModeResponse *response,
-                               void *clent_data);
+  static void HubSetPointCloudReturnModeCb(
+      livox_status status, uint8_t handle,
+      HubSetPointCloudReturnModeResponse *response, void *clent_data);
   static void SetCoordinateCb(livox_status status, uint8_t handle,
                               uint8_t response, void *clent_data);
-  static void
-  HubSetImuRatePushFrequencyCb(livox_status status, uint8_t handle,
-                               HubSetImuPushFrequencyResponse *response,
-                               void *clent_data);
+  static void HubSetImuRatePushFrequencyCb(
+      livox_status status, uint8_t handle,
+      HubSetImuPushFrequencyResponse *response, void *clent_data);
   static void HubErrorStatusCb(livox_status status, uint8_t handle,
                                ErrorMessage *message);
   static void ConfigPointCloudReturnMode(LdsHub *lds_hub);
@@ -118,5 +116,5 @@ private:
   UserRawConfig hub_raw_config_;
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

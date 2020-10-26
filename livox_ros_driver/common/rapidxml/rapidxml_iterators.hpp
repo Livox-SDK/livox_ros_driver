@@ -11,9 +11,9 @@
 namespace rapidxml {
 
 //! Iterator of child nodes of xml_node
-template <class Ch> class node_iterator {
-
-public:
+template <class Ch>
+class node_iterator {
+ public:
   typedef typename xml_node<Ch> value_type;
   typedef typename xml_node<Ch> &reference;
   typedef typename xml_node<Ch> *pointer;
@@ -62,14 +62,14 @@ public:
 
   bool operator!=(const node_iterator<Ch> &rhs) { return m_node != rhs.m_node; }
 
-private:
+ private:
   xml_node<Ch> *m_node;
 };
 
 //! Iterator of child attributes of xml_node
-template <class Ch> class attribute_iterator {
-
-public:
+template <class Ch>
+class attribute_iterator {
+ public:
   typedef typename xml_attribute<Ch> value_type;
   typedef typename xml_attribute<Ch> &reference;
   typedef typename xml_attribute<Ch> *pointer;
@@ -123,10 +123,10 @@ public:
     return m_attribute != rhs.m_attribute;
   }
 
-private:
+ private:
   xml_attribute<Ch> *m_attribute;
 };
 
-} // namespace rapidxml
+}  // namespace rapidxml
 
 #endif

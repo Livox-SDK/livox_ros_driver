@@ -71,7 +71,7 @@ inline static uint32_t RoundupPowerOf2(uint32_t size) {
 int InitQueue(LidarDataQueue *queue, uint32_t queue_size);
 int DeInitQueue(LidarDataQueue *queue);
 void ResetQueue(LidarDataQueue *queue);
-void QueueProPop(LidarDataQueue *queue, StoragePacket *storage_packet);
+void QueuePrePop(LidarDataQueue *queue, StoragePacket *storage_packet);
 void QueuePopUpdate(LidarDataQueue *queue);
 uint32_t QueuePop(LidarDataQueue *queue, StoragePacket *storage_packet);
 uint32_t QueueUsedSize(LidarDataQueue *queue);
@@ -82,5 +82,5 @@ uint32_t QueuePush(LidarDataQueue *queue, StoragePacket *storage_packet);
 uint32_t QueuePushAny(LidarDataQueue *queue, uint8_t *data, uint32_t length,
                       uint64_t time_rcv, uint32_t point_num);
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

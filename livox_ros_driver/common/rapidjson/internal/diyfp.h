@@ -23,9 +23,9 @@
 #ifndef RAPIDJSON_DIYFP_H_
 #define RAPIDJSON_DIYFP_H_
 
+#include <limits>
 #include "../rapidjson.h"
 #include "clzll.h"
-#include <limits>
 
 #if defined(_MSC_VER) && defined(_M_AMD64) && !defined(__INTEL_COMPILER)
 #include <intrin.h>
@@ -74,16 +74,16 @@ struct DiyFp {
 #if defined(_MSC_VER) && defined(_M_AMD64)
     uint64_t h;
     uint64_t l = _umul128(f, rhs.f, &h);
-    if (l & (uint64_t(1) << 63)) // rounding
+    if (l & (uint64_t(1) << 63))  // rounding
       h++;
     return DiyFp(h, e + rhs.e + 64);
-#elif (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)) &&              \
+#elif (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)) && \
     defined(__x86_64__)
     __extension__ typedef unsigned __int128 uint128;
     uint128 p = static_cast<uint128>(f) * static_cast<uint128>(rhs.f);
     uint64_t h = static_cast<uint64_t>(p >> 64);
     uint64_t l = static_cast<uint64_t>(p);
-    if (l & (uint64_t(1) << 63)) // rounding
+    if (l & (uint64_t(1) << 63))  // rounding
       h++;
     return DiyFp(h, e + rhs.e + 64);
 #else
@@ -97,7 +97,7 @@ struct DiyFp {
     const uint64_t ad = a * d;
     const uint64_t bd = b * d;
     uint64_t tmp = (bd >> 32) + (ad & M32) + (bc & M32);
-    tmp += 1U << 31; /// mult_round
+    tmp += 1U << 31;  /// mult_round
     return DiyFp(ac + (ad >> 32) + (bc >> 32) + (tmp >> 32), e + rhs.e + 64);
 #endif
   }
@@ -270,17 +270,15 @@ inline DiyFp GetCachedPowerByIndex(size_t index) {
 }
 
 inline DiyFp GetCachedPower(int e, int *K) {
-
   // int k = static_cast<int>(ceil((-61 - e) * 0.30102999566398114)) + 374;
   double dk = (-61 - e) * 0.30102999566398114 +
-              347; // dk must be positive, so can do ceiling in positive
+              347;  // dk must be positive, so can do ceiling in positive
   int k = static_cast<int>(dk);
-  if (dk - k > 0.0)
-    k++;
+  if (dk - k > 0.0) k++;
 
   unsigned index = static_cast<unsigned>((k >> 3) + 1);
-  *K = -(-348 +
-         static_cast<int>(index << 3)); // decimal exponent no need lookup table
+  *K = -(-348 + static_cast<int>(
+                    index << 3));  // decimal exponent no need lookup table
 
   return GetCachedPowerByIndex(index);
 }
@@ -301,7 +299,7 @@ RAPIDJSON_DIAG_POP
 RAPIDJSON_DIAG_OFF(padded)
 #endif
 
-} // namespace internal
+}  // namespace internal
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_DIYFP_H_
+#endif  // RAPIDJSON_DIYFP_H_

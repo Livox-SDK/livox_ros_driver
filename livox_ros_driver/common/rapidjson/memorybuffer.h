@@ -40,8 +40,9 @@ RAPIDJSON_NAMESPACE_BEGIN
     \tparam Allocator type for allocating memory buffer.
     \note implements Stream concept
 */
-template <typename Allocator = CrtAllocator> struct GenericMemoryBuffer {
-  typedef char Ch; // byte
+template <typename Allocator = CrtAllocator>
+struct GenericMemoryBuffer {
+  typedef char Ch;  // byte
 
   GenericMemoryBuffer(Allocator *allocator = 0,
                       size_t capacity = kDefaultCapacity)
@@ -67,10 +68,11 @@ typedef GenericMemoryBuffer<> MemoryBuffer;
 
 //! Implement specialized version of PutN() with memset() for better
 //! performance.
-template <> inline void PutN(MemoryBuffer &memoryBuffer, char c, size_t n) {
+template <>
+inline void PutN(MemoryBuffer &memoryBuffer, char c, size_t n) {
   std::memset(memoryBuffer.stack_.Push<char>(n), c, n * sizeof(c));
 }
 
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_MEMORYBUFFER_H_
+#endif  // RAPIDJSON_MEMORYBUFFER_H_

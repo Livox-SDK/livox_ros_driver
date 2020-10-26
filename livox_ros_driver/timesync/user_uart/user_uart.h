@@ -66,8 +66,7 @@ enum BaudRate {
 };
 
 class UserUart {
-
-public:
+ public:
   UserUart(uint8_t baudrate_index, uint8_t parity);
   ~UserUart();
 
@@ -78,7 +77,7 @@ public:
   int Open(const char *filename);
   bool IsOpen() { return is_open_; };
 
-private:
+ private:
   int fd_;
   volatile bool is_open_;
 
@@ -86,6 +85,6 @@ private:
   uint8_t parity_;
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 
 #endif

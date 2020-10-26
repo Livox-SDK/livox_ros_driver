@@ -71,7 +71,7 @@ inline double Pow10(int n) {
   return e[n];
 }
 
-} // namespace internal
+}  // namespace internal
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_POW10_
+#endif  // RAPIDJSON_POW10_

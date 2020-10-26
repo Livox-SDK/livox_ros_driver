@@ -44,7 +44,7 @@ template <typename Encoding, typename InputByteStream>
 class EncodedInputStream {
   RAPIDJSON_STATIC_ASSERT(sizeof(typename InputByteStream::Ch) == 1);
 
-public:
+ public:
   typedef typename Encoding::Ch Ch;
 
   EncodedInputStream(InputByteStream &is) : is_(is) {
@@ -71,7 +71,7 @@ public:
     return 0;
   }
 
-private:
+ private:
   EncodedInputStream(const EncodedInputStream &);
   EncodedInputStream &operator=(const EncodedInputStream &);
 
@@ -80,17 +80,15 @@ private:
 };
 
 //! Specialized for UTF8 MemoryStream.
-template <> class EncodedInputStream<UTF8<>, MemoryStream> {
-public:
+template <>
+class EncodedInputStream<UTF8<>, MemoryStream> {
+ public:
   typedef UTF8<>::Ch Ch;
 
   EncodedInputStream(MemoryStream &is) : is_(is) {
-    if (static_cast<unsigned char>(is_.Peek()) == 0xEFu)
-      is_.Take();
-    if (static_cast<unsigned char>(is_.Peek()) == 0xBBu)
-      is_.Take();
-    if (static_cast<unsigned char>(is_.Peek()) == 0xBFu)
-      is_.Take();
+    if (static_cast<unsigned char>(is_.Peek()) == 0xEFu) is_.Take();
+    if (static_cast<unsigned char>(is_.Peek()) == 0xBBu) is_.Take();
+    if (static_cast<unsigned char>(is_.Peek()) == 0xBFu) is_.Take();
   }
   Ch Peek() const { return is_.Peek(); }
   Ch Take() { return is_.Take(); }
@@ -104,7 +102,7 @@ public:
 
   MemoryStream &is_;
 
-private:
+ private:
   EncodedInputStream(const EncodedInputStream &);
   EncodedInputStream &operator=(const EncodedInputStream &);
 };
@@ -119,12 +117,11 @@ template <typename Encoding, typename OutputByteStream>
 class EncodedOutputStream {
   RAPIDJSON_STATIC_ASSERT(sizeof(typename OutputByteStream::Ch) == 1);
 
-public:
+ public:
   typedef typename Encoding::Ch Ch;
 
   EncodedOutputStream(OutputByteStream &os, bool putBOM = true) : os_(os) {
-    if (putBOM)
-      Encoding::PutBOM(os_);
+    if (putBOM) Encoding::PutBOM(os_);
   }
 
   void Put(Ch c) { Encoding::Put(os_, c); }
@@ -152,14 +149,14 @@ public:
     return 0;
   }
 
-private:
+ private:
   EncodedOutputStream(const EncodedOutputStream &);
   EncodedOutputStream &operator=(const EncodedOutputStream &);
 
   OutputByteStream &os_;
 };
 
-#define RAPIDJSON_ENCODINGS_FUNC(x)                                            \
+#define RAPIDJSON_ENCODINGS_FUNC(x) \
   UTF8<Ch>::x, UTF16LE<Ch>::x, UTF16BE<Ch>::x, UTF32LE<Ch>::x, UTF32BE<Ch>::x
 
 //! Input stream wrapper with dynamically bound encoding and automatic encoding
@@ -172,7 +169,7 @@ template <typename CharType, typename InputByteStream>
 class AutoUTFInputStream {
   RAPIDJSON_STATIC_ASSERT(sizeof(typename InputByteStream::Ch) == 1);
 
-public:
+ public:
   typedef CharType Ch;
 
   //! Constructor.
@@ -212,7 +209,7 @@ public:
     return 0;
   }
 
-private:
+ private:
   AutoUTFInputStream(const AutoUTFInputStream &);
   AutoUTFInputStream &operator=(const AutoUTFInputStream &);
 
@@ -227,8 +224,7 @@ private:
 
     const unsigned char *c =
         reinterpret_cast<const unsigned char *>(is_->Peek4());
-    if (!c)
-      return;
+    if (!c) return;
 
     unsigned bom =
         static_cast<unsigned>(c[0] | (c[1] << 8) | (c[2] << 16) | (c[3] << 24));
@@ -280,23 +276,23 @@ private:
       int pattern =
           (c[0] ? 1 : 0) | (c[1] ? 2 : 0) | (c[2] ? 4 : 0) | (c[3] ? 8 : 0);
       switch (pattern) {
-      case 0x08:
-        type_ = kUTF32BE;
-        break;
-      case 0x0A:
-        type_ = kUTF16BE;
-        break;
-      case 0x01:
-        type_ = kUTF32LE;
-        break;
-      case 0x05:
-        type_ = kUTF16LE;
-        break;
-      case 0x0F:
-        type_ = kUTF8;
-        break;
-      default:
-        break; // Use type defined by user.
+        case 0x08:
+          type_ = kUTF32BE;
+          break;
+        case 0x0A:
+          type_ = kUTF16BE;
+          break;
+        case 0x01:
+          type_ = kUTF32LE;
+          break;
+        case 0x05:
+          type_ = kUTF16LE;
+          break;
+        case 0x0F:
+          type_ = kUTF8;
+          break;
+        default:
+          break;  // Use type defined by user.
       }
     }
 
@@ -326,7 +322,7 @@ template <typename CharType, typename OutputByteStream>
 class AutoUTFOutputStream {
   RAPIDJSON_STATIC_ASSERT(sizeof(typename OutputByteStream::Ch) == 1);
 
-public:
+ public:
   typedef CharType Ch;
 
   //! Constructor.
@@ -349,8 +345,7 @@ public:
     static const PutFunc f[] = {RAPIDJSON_ENCODINGS_FUNC(Put)};
     putFunc_ = f[type_];
 
-    if (putBOM)
-      PutBOM();
+    if (putBOM) PutBOM();
   }
 
   UTFType GetType() const { return type_; }
@@ -380,7 +375,7 @@ public:
     return 0;
   }
 
-private:
+ private:
   AutoUTFOutputStream(const AutoUTFOutputStream &);
   AutoUTFOutputStream &operator=(const AutoUTFOutputStream &);
 
@@ -409,4 +404,4 @@ RAPIDJSON_DIAG_POP
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_FILESTREAM_H_
+#endif  // RAPIDJSON_FILESTREAM_H_

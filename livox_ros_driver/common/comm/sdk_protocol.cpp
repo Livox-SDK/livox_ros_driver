@@ -29,8 +29,8 @@
 
 namespace livox_ros {
 const uint8_t kSdkProtocolSof = 0xAA;
-const uint32_t kSdkPacketCrcSize = 4;         // crc32
-const uint32_t kSdkPacketPreambleCrcSize = 2; // crc16
+const uint32_t kSdkPacketCrcSize = 4;          // crc32
+const uint32_t kSdkPacketPreambleCrcSize = 2;  // crc16
 
 SdkProtocol::SdkProtocol(uint16_t seed16, uint32_t seed32)
     : crc16_(seed16), crc32_(seed32) {}
@@ -77,7 +77,7 @@ int32_t SdkProtocol::ParsePacket(const uint8_t *i_buf, uint32_t i_len,
   SdkPacket *sdk_packet = (SdkPacket *)i_buf;
 
   if (i_len < GetPacketWrapperLen()) {
-    return -1; // packet lenth error
+    return -1;  // packet lenth error
   }
 
   memset((void *)o_packet, 0, sizeof(CommPacket));
@@ -131,4 +131,4 @@ int32_t SdkProtocol::CheckPacket(const uint8_t *buf) {
     return -1;
   }
 }
-} // namespace livox_ros
+}  // namespace livox_ros

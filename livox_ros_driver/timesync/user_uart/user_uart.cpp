@@ -51,7 +51,7 @@ UserUart::~UserUart() {
 }
 
 int UserUart::Open(const char *filename) {
-  fd_ = open(filename, O_RDWR | O_NOCTTY); //| O_NDELAY
+  fd_ = open(filename, O_RDWR | O_NOCTTY);  //| O_NDELAY
   if (fd_ < 0) {
     printf("Open %s fail!\n", filename);
     return -1;
@@ -72,7 +72,6 @@ int UserUart::Open(const char *filename) {
 }
 
 int UserUart::Close() {
-
   is_open_ = false;
   if (fd_ > 0) {
     /** first we flush the port */
@@ -121,38 +120,38 @@ int UserUart::Setup(uint8_t baudrate_index, uint8_t parity) {
   options.c_cflag |= baudrate;
 
   switch (parity) {
-  case P_8N1:
-    /** No parity (8N1)  */
-    options.c_cflag &= ~PARENB;
-    options.c_cflag &= ~CSTOPB;
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;
-    break;
-  case P_7E1:
-    /** Even parity (7E1) */
-    options.c_cflag |= PARENB;
-    options.c_cflag &= ~PARODD;
-    options.c_cflag &= ~CSTOPB;
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS7;
-    break;
-  case P_7O1:
-    /** Odd parity (7O1) */
-    options.c_cflag |= PARENB;
-    options.c_cflag |= PARODD;
-    options.c_cflag &= ~CSTOPB;
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS7;
-    break;
-  case P_7S1:
-    /** Space parity is setup the same as no parity (7S1)  */
-    options.c_cflag &= ~PARENB;
-    options.c_cflag &= ~CSTOPB;
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;
-    break;
-  default:
-    return -1;
+    case P_8N1:
+      /** No parity (8N1)  */
+      options.c_cflag &= ~PARENB;
+      options.c_cflag &= ~CSTOPB;
+      options.c_cflag &= ~CSIZE;
+      options.c_cflag |= CS8;
+      break;
+    case P_7E1:
+      /** Even parity (7E1) */
+      options.c_cflag |= PARENB;
+      options.c_cflag &= ~PARODD;
+      options.c_cflag &= ~CSTOPB;
+      options.c_cflag &= ~CSIZE;
+      options.c_cflag |= CS7;
+      break;
+    case P_7O1:
+      /** Odd parity (7O1) */
+      options.c_cflag |= PARENB;
+      options.c_cflag |= PARODD;
+      options.c_cflag &= ~CSTOPB;
+      options.c_cflag &= ~CSIZE;
+      options.c_cflag |= CS7;
+      break;
+    case P_7S1:
+      /** Space parity is setup the same as no parity (7S1)  */
+      options.c_cflag &= ~PARENB;
+      options.c_cflag &= ~CSTOPB;
+      options.c_cflag &= ~CSIZE;
+      options.c_cflag |= CS8;
+      break;
+    default:
+      return -1;
   }
 
   /** now we setup the values in port's termios */
@@ -192,4 +191,4 @@ ssize_t UserUart::Read(char *buffer, size_t size) {
   }
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

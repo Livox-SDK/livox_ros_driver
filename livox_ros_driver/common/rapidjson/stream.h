@@ -75,7 +75,8 @@ next character. Ch Take();
    configuration. See TEST(Reader, CustomStringStream) in readertest.cpp for
    example.
 */
-template <typename Stream> struct StreamTraits {
+template <typename Stream>
+struct StreamTraits {
   //! Whether to make local copy of stream for optimization during parsing.
   /*!
       By default, for safety, streams do not use local copy optimization.
@@ -102,8 +103,7 @@ inline void PutUnsafe(Stream &stream, typename Stream::Ch c) {
 template <typename Stream, typename Ch>
 inline void PutN(Stream &stream, Ch c, size_t n) {
   PutReserve(stream, n);
-  for (size_t i = 0; i < n; i++)
-    PutUnsafe(stream, c);
+  for (size_t i = 0; i < n; i++) PutUnsafe(stream, c);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,13 +117,13 @@ inline void PutN(Stream &stream, Ch c, size_t n) {
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(4702) // unreachable code
-RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
+RAPIDJSON_DIAG_OFF(4702)  // unreachable code
+RAPIDJSON_DIAG_OFF(4512)  // assignment operator could not be generated
 #endif
 
 template <typename InputStream, typename Encoding = UTF8<>>
 class GenericStreamWrapper {
-public:
+ public:
   typedef typename Encoding::Ch Ch;
   GenericStreamWrapper(InputStream &is) : is_(is) {}
 
@@ -142,7 +142,7 @@ public:
   UTFType GetType() const { return is_.GetType(); }
   bool HasBOM() const { return is_.HasBOM(); }
 
-protected:
+ protected:
   InputStream &is_;
 };
 
@@ -156,7 +156,8 @@ RAPIDJSON_DIAG_POP
 //! Read-only string stream.
 /*! \note implements Stream concept
  */
-template <typename Encoding> struct GenericStringStream {
+template <typename Encoding>
+struct GenericStringStream {
   typedef typename Encoding::Ch Ch;
 
   GenericStringStream(const Ch *src) : src_(src), head_(src) {}
@@ -176,8 +177,8 @@ template <typename Encoding> struct GenericStringStream {
     return 0;
   }
 
-  const Ch *src_;  //!< Current read position.
-  const Ch *head_; //!< Original head of the string.
+  const Ch *src_;   //!< Current read position.
+  const Ch *head_;  //!< Original head of the string.
 };
 
 template <typename Encoding>
@@ -195,7 +196,8 @@ typedef GenericStringStream<UTF8<>> StringStream;
 /*! This string stream is particularly designed for in-situ parsing.
     \note implements Stream concept
 */
-template <typename Encoding> struct GenericInsituStringStream {
+template <typename Encoding>
+struct GenericInsituStringStream {
   typedef typename Encoding::Ch Ch;
 
   GenericInsituStringStream(Ch *src) : src_(src), dst_(0), head_(src) {}
@@ -237,4 +239,4 @@ typedef GenericInsituStringStream<UTF8<>> InsituStringStream;
 
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_STREAM_H_
+#endif  // RAPIDJSON_STREAM_H_

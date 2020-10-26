@@ -29,8 +29,13 @@
 
 #include <ros/ros.h>
 #include <rosbag/bag.h>
+#include <pcl_ros/point_cloud.h>
+#include <livox_ros_driver/CustomMsg.h>
+#include <livox_ros_driver/CustomPoint.h>
 
 namespace livox_ros {
+
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
 
 /** Lidar data distribute control */
 typedef enum {
@@ -40,8 +45,8 @@ typedef enum {
 } TransferType;
 
 class Lddc {
-public:
-  Lddc(int format, int multi_topic, int data_src, int output_type, double frq, \
+ public:
+  Lddc(int format, int multi_topic, int data_src, int output_type, double frq,
        std::string &frame_id);
   ~Lddc();
 
@@ -59,9 +64,10 @@ public:
 
   Lds *lds_;
 
-private:
+ private:
   int32_t GetPublishStartTime(LidarDevice *lidar, LidarDataQueue *queue,
-      uint64_t *start_time, StoragePacket *storage_packet);
+                              uint64_t *start_time,
+                              StoragePacket *storage_packet);
   uint32_t PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
                               uint8_t handle);
   uint32_t PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
@@ -75,7 +81,12 @@ private:
   ros::Publisher *GetCurrentImuPublisher(uint8_t handle);
   void PollingLidarPointCloudData(uint8_t handle, LidarDevice *lidar);
   void PollingLidarImuData(uint8_t handle, LidarDevice *lidar);
-
+  void InitPointcloud2MsgHeader(sensor_msgs::PointCloud2& cloud);
+  void FillPointsToPclMsg(PointCloud::Ptr& pcl_msg, \
+      LivoxPointXyzrtl* src_point, uint32_t num);
+  void FillPointsToCustomMsg(livox_ros_driver::CustomMsg& livox_msg, \
+      LivoxPointXyzrtl* src_point, uint32_t num, uint32_t offset_time, \
+      uint32_t point_interval, uint32_t echo_num);
   uint8_t transfer_format_;
   uint8_t use_multi_topic_;
   uint8_t data_src_;
@@ -92,5 +103,5 @@ private:
   rosbag::Bag *bag_;
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

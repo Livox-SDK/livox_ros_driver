@@ -39,7 +39,7 @@ namespace livox_ros {
  * Lidar data source abstract.
  */
 class LdsLvx : public Lds {
-public:
+ public:
   static LdsLvx *GetInstance(uint32_t interval_ms) {
     static LdsLvx lds_lvx(interval_ms);
     return &lds_lvx;
@@ -49,7 +49,7 @@ public:
   int DeInitLdsLvx(void);
   void PrepareExit(void);
 
-private:
+ private:
   LdsLvx(uint32_t interval_ms);
   LdsLvx(const LdsLvx &) = delete;
   ~LdsLvx();
@@ -60,8 +60,6 @@ private:
   bool IsStarted() { return start_read_lvx_; }
 
   void ReadLvxFile();
-  bool IsAllQueueEmpty();
-  bool IsAllQueueReadStop();
 
   volatile bool is_initialized_;
   OutPacketBuffer packets_of_frame_;
@@ -70,5 +68,5 @@ private:
   volatile bool start_read_lvx_;
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

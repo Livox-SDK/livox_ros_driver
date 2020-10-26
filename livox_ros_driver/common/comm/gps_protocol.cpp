@@ -49,7 +49,7 @@ int32_t GpsProtocol::ParsePacket(const uint8_t *i_buf, uint32_t i_len,
   // GpsPacket *gps_packet = (GpsPacket *)i_buf;
 
   if (i_len < GetPacketWrapperLen()) {
-    return -1; // packet length error
+    return -1;  // packet length error
   }
   memset((void *)o_packet, 0, sizeof(CommPacket));
   o_packet->protocol = kGps;
@@ -114,14 +114,12 @@ uint8_t GpsProtocol::CalcGpsPacketChecksum(const uint8_t *buf,
 
 uint8_t AscciiToHex(const uint8_t *TwoChar) {
   uint8_t h = toupper(TwoChar[0]) - 0x30;
-  if (h > 9)
-    h -= 7;
+  if (h > 9) h -= 7;
 
   uint8_t l = toupper(TwoChar[1]) - 0x30;
-  if (l > 9)
-    l -= 7;
+  if (l > 9) l -= 7;
 
   return h * 16 + l;
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

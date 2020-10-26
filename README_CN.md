@@ -3,6 +3,16 @@
 览沃ROS驱动程序是一个全新的 ROS 包，专门用于连接览沃生产的 LiDAR 产品。该驱动程序可以在安装了
 ROS 环境（ indigo,kinetic,melodic ）的 ubuntu14.04/16.04/18.04 操作系统下运行。经测试可以运行览沃 ROS 驱动程序的硬件平台包括：intel x86 主流 cpu 平台，部分 ARM64 硬件平台（如，nvida TX2/Xavier 等）。
 
+## 0. 版本和发布记录
+
+### 0.1 当前版本
+
+v2.6.0
+
+### 0.2 发布记录
+
+[发布记录](https://github.com/Livox-SDK/livox_ros_driver/releases)
+
 ## 1. 安装依赖
 
 运行览沃 ROS 驱动程序之前，必须安装 ROS 和 Livox-SDK。
@@ -165,7 +175,6 @@ uint8 line              # laser number in lidar
          {
             "broadcast_code": "0TFDG3B006H2Z11",
             "enable_connect": true,
-            "enable_fan": true,
             "return_mode": 0,
             "coordinate": 0,
             "imu_rate": 1,
@@ -178,12 +187,10 @@ uint8 line              # laser number in lidar
 &ensp;&ensp;&ensp;&ensp;上面 json 文件中各参数属性说明如下表：
 
 <center>LiDAR 配置参数说明</center>
-
 | 属性                       | 类型   | 描述                                                         | 默认值          |
 | :------------------------- | ------ | ------------------------------------------------------------ | --------------- |
 | broadcast_code             | 字符串 | LiDAR 广播码，15位字符，由14位字符长度序列号加一个字符长度附加码组成 | 0TFDG3B006H2Z11 |
 | enable_connect             | 布尔值 | 是否连接此 LiDAR<br>true -- 连接此 LiDAR<br>false -- 禁止连接此 LiDAR | false           |
-| enable_fan                 | 布尔值 | 是否自动控制此 LiDAR 风扇<br>true -- 自动控制 LiDAR 风扇<br>false -- 禁止自动控制此 LiDAR 风扇 | true            |
 | return_mode                | 整型   | 回波模式<br>0 -- 第一个回波模式<br>1 -- 最强回波模式<br>2 -- 双回波模式 | 0               |
 | coordinate                 | 整型   | 原始点云数据的坐标轴类型<br>0 -- 直角坐标系<br>1 -- 球坐标系 | 0               |
 | imu_rate                   | 整型   | IMU 传感器数据的推送频率<br>0 -- 关闭 IMU 传感器数据推送<br>1 --  以 200Hz 频率推送 IMU 传感器数据<br>其他值 -- 未定义，会导致不可预测的行为发生<br>目前只有 Horizon/Tele 支持此选项，MID 序列不支持 | 0               |
@@ -206,7 +213,6 @@ uint8 line              # laser number in lidar
       "lidar_config": [
          {
             "broadcast_code": "0TFDG3B006H2Z11",
-            "enable_fan": true,
             "return_mode": 0,
             "imu_rate": 1
          }
@@ -217,7 +223,6 @@ uint8 line              # laser number in lidar
 &ensp;&ensp;&ensp;&ensp;中心板 json 配置文件内容与 LiDAR 配置文件的主要区别在于，增加了中心板配置项 hub_config ，中心板相关的具体配置内容见下表：
 
 <center>HUB 配置参数说明</center>
-
 | 属性           | 类型   | 描述                                                         | 默认值          |
 | -------------- | ------ | ------------------------------------------------------------ | --------------- |
 | broadcast_code | 字符串 | HUB 广播码，15位字符，由14位字符长度的序列号加一个字符长度的附加码组成 | 13UUG1R00400170 |
@@ -261,7 +266,6 @@ uint8 line              # laser number in lidar
 览沃 ROS 驱动程序只有在与 LiDAR 连接的时候才支持时间戳同步功能，时间戳相关的配置项 timesync_config 位于 livox_lidar_config.json 文件中，详细的配置内容见下表：
 
 <center>时间戳同步功能配置说明</center>
-
 | 属性             | 类型   | 描述                                                         | 默认值         |
 | ---------------- | ------ | ------------------------------------------------------------ | -------------- |
 | enable_timesync  | 布尔值 | 是否使能时间戳同步功能<br>true -- 使能时间戳同步功能<br>false -- 禁止时间戳同步功能 | false          |

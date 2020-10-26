@@ -24,23 +24,21 @@
 
 #include "lds_lvx.h"
 
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 #include <functional>
 #include <memory>
-#include <stdio.h>
-#include <string.h>
 #include <thread>
 
 #include "lvx_file.h"
 
 namespace livox_ros {
 
-/** Const varible
- * --------------------------------------------------------------------------------
- */
+/** Const varible ------------------------------------------------------------*/
 const uint32_t kMaxPacketsNumOfFrame = 8192;
 
-/** For device connect use
- * ---------------------------------------------------------------------- */
+/** For device connect use ---------------------------------------------------*/
 LdsLvx::LdsLvx(uint32_t interval_ms) : Lds(interval_ms, kSourceLvxFile) {
   start_read_lvx_ = false;
   is_initialized_ = false;
@@ -62,7 +60,7 @@ LdsLvx::~LdsLvx() {
 
 void LdsLvx::PrepareExit(void) {
   lvx_file_->CloseLvxFile();
-  printf("Lvx to rosbag convert complete and exit!\n");
+  printf("Convert complete, Press [Ctrl+C] to exit!\n");
 }
 
 int LdsLvx::InitLdsLvx(const char *lvx_path) {
@@ -83,31 +81,37 @@ int LdsLvx::InitLdsLvx(const char *lvx_path) {
     ResetLds(kSourceLvxFile);
   }
 
-  lidar_count_ = lvx_file_->GetDeviceCount();
-  if (!lidar_count_ || (lidar_count_ >= kMaxSourceLidar)) {
+  uint32_t valid_lidar_count_ = lvx_file_->GetDeviceCount();
+  if (!valid_lidar_count_ || (valid_lidar_count_ >= kMaxSourceLidar)) {
     lvx_file_->CloseLvxFile();
-    printf("Lidar count error in %s : %d\n", lvx_path, lidar_count_);
+    printf("Lidar count error in %s : %d\n", lvx_path, valid_lidar_count_);
     return -1;
   }
-  printf("LvxFile[%s] have %d lidars\n", lvx_path, lidar_count_);
+  printf("LvxFile[%s] have %d lidars\n", lvx_path, valid_lidar_count_);
 
-  for (int i = 0; i < lidar_count_; i++) {
+  for (uint32_t i = 0; i < valid_lidar_count_; i++) {
     LvxFileDeviceInfo lvx_dev_info;
     lvx_file_->GetDeviceInfo(i, &lvx_dev_info);
-    lidars_[i].handle = i;
-    lidars_[i].connect_state = kConnectStateSampling;
-    lidars_[i].info.handle = i;
-    lidars_[i].info.type = lvx_dev_info.device_type;
-    memcpy(lidars_[i].info.broadcast_code, lvx_dev_info.lidar_broadcast_code,
-           sizeof(lidars_[i].info.broadcast_code));
+    uint8_t handle = lvx_dev_info.device_index;
+    if (handle >= kMaxSourceLidar) {
+      printf("Invalid hanle from lvx file!\n");
+      continue;
+    }
+    lidars_[handle].handle        = handle;
+    lidars_[handle].connect_state = kConnectStateSampling;
+    lidars_[handle].info.handle = handle;
+    lidars_[handle].info.type   = lvx_dev_info.device_type;
+    memcpy(lidars_[handle].info.broadcast_code, \
+           lvx_dev_info.lidar_broadcast_code, \
+           sizeof(lidars_[handle].info.broadcast_code));
 
     if (lvx_file_->GetFileVersion() == kLvxFileV1) {
-      lidars_[i].data_src = kSourceRawLidar;
+      lidars_[handle].data_src = kSourceRawLidar;
     } else {
-      lidars_[i].data_src = kSourceLvxFile;
+      lidars_[handle].data_src = kSourceLvxFile;
     }
 
-    ExtrinsicParameter *p_extrinsic = &lidars_[i].extrinsic_parameter;
+    ExtrinsicParameter *p_extrinsic = &lidars_[handle].extrinsic_parameter;
     p_extrinsic->euler[0] = lvx_dev_info.roll * PI / 180.0;
     p_extrinsic->euler[1] = lvx_dev_info.pitch * PI / 180.0;
     p_extrinsic->euler[2] = lvx_dev_info.yaw * PI / 180.0;
@@ -118,9 +122,9 @@ int LdsLvx::InitLdsLvx(const char *lvx_path) {
     p_extrinsic->enable = lvx_dev_info.extrinsic_enable;
 
     uint32_t queue_size = kMaxEthPacketQueueSize * 16;
-    InitQueue(&lidars_[i].data, queue_size);
+    InitQueue(&lidars_[handle].data, queue_size);
     queue_size = kMaxEthPacketQueueSize;
-    InitQueue(&lidars_[i].imu_data, queue_size);
+    InitQueue(&lidars_[handle].imu_data, queue_size);
   }
 
   t_read_lvx_ =
@@ -134,8 +138,7 @@ int LdsLvx::InitLdsLvx(const char *lvx_path) {
 
 /** Global function in LdsLvx for callback */
 void LdsLvx::ReadLvxFile() {
-  while (!start_read_lvx_)
-    ;
+  while (!start_read_lvx_);
   printf("Start to read lvx file.\n");
 
   int file_state = kLvxFileOk;
@@ -164,32 +167,19 @@ void LdsLvx::ReadLvxFile() {
 
         data_type = eth_packet->data_type;
         /** Packet length + device index */
-        data_offset += (GetEthPacketLen(data_type) + 1); 
-        if (data_type != kImu) {
-          LidarDevice *p_lidar = &lidars_[handle];
-          LidarDataQueue *p_queue = &lidars_[handle].data;
-          if (p_lidar->raw_data_type != eth_packet->data_type) {
-            p_lidar->raw_data_type = eth_packet->data_type;
-            p_lidar->packet_interval = GetPacketInterval(eth_packet->data_type);
-            p_lidar->packet_interval_max = p_lidar->packet_interval * 1.8f;
-          }          
-          if ((p_queue != nullptr) && (handle < lidar_count_)) {
-            while (QueueIsFull(p_queue)) {
-              std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-            QueuePushAny(p_queue, (uint8_t *)eth_packet,
-                         GetEthPacketLen(data_type), 0,
-                         GetPointsPerPacket(data_type));
+        data_offset += (GetEthPacketLen(data_type) + 1);
+        StorageRawPacket(handle, eth_packet);
+
+        LidarDataQueue *p_queue = &lidars_[handle].data;
+        if (p_queue != nullptr) {
+          while (QueueIsFull(p_queue)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
           }
-        } else {
-          LidarDataQueue *p_queue = &lidars_[handle].imu_data;
-          if ((p_queue != nullptr) && (handle < lidar_count_)) {
-            while (QueueIsFull(p_queue)) {
-              std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-            QueuePushAny(p_queue, (uint8_t *)eth_packet,
-                         GetEthPacketLen(data_type), 0,
-                         GetPointsPerPacket(data_type));
+        }
+        p_queue = &lidars_[handle].imu_data;
+        if (p_queue != nullptr) {
+          while (QueueIsFull(p_queue)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
           }
         }
       }
@@ -207,10 +197,13 @@ void LdsLvx::ReadLvxFile() {
       printf("Read progress : %d \n", progress);
     }
   }
-
-  int32_t wait_cnt = 10;
+  printf("Wait for file conversion to complete!\n");
+  int32_t wait_cnt = 5;
   while (!IsAllQueueEmpty()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(40));
+    if (semaphore_.GetCount() <= 0) {
+      semaphore_.Signal();
+    }
     if (IsAllQueueReadStop()) {
       --wait_cnt;
       if (wait_cnt <= 0) {
@@ -218,31 +211,12 @@ void LdsLvx::ReadLvxFile() {
       }
     }
   }
+
   RequestExit();
-}
-
-bool LdsLvx::IsAllQueueEmpty() {
-  for (int i = 0; i < lidar_count_; i++) {
-    LidarDevice *p_lidar = &lidars_[i];
-    if (!QueueIsEmpty(&p_lidar->data)) {
-      return false;
-    }
+  while(semaphore_.GetCount() > 0) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
-
-  return true;
+  semaphore_.Signal();
 }
 
-bool LdsLvx::IsAllQueueReadStop() {
-  static uint32_t remain_size[kMaxSourceLidar];
-  for (int i = 0; i < lidar_count_; i++) {
-    LidarDevice *p_lidar = &lidars_[i];
-    if (remain_size[i] != QueueIsEmpty(&p_lidar->data)) {
-      remain_size[i] = QueueIsEmpty(&p_lidar->data);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-} // namespace livox_ros
+}  // namespace livox_ros

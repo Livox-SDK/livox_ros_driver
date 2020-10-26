@@ -26,15 +26,15 @@
 #define LIVOX_ROS_DRIVER_INClUDE_LIVOX_ROS_DRIVER_H_
 
 #define LIVOX_ROS_DRIVER_VER_MAJOR 2
-#define LIVOX_ROS_DRIVER_VER_MINOR 5
+#define LIVOX_ROS_DRIVER_VER_MINOR 6
 #define LIVOX_ROS_DRIVER_VER_PATCH 0
 
 #define GET_STRING(n) GET_STRING_DIRECT(n)
 #define GET_STRING_DIRECT(n) #n
 
-#define LIVOX_ROS_DRIVER_VERSION_STRING                                        \
-  GET_STRING(LIVOX_ROS_DRIVER_VER_MAJOR)                                       \
-  "." GET_STRING(LIVOX_ROS_DRIVER_VER_MINOR) "." GET_STRING(                   \
+#define LIVOX_ROS_DRIVER_VERSION_STRING                      \
+  GET_STRING(LIVOX_ROS_DRIVER_VER_MAJOR)                     \
+  "." GET_STRING(LIVOX_ROS_DRIVER_VER_MINOR) "." GET_STRING( \
       LIVOX_ROS_DRIVER_VER_PATCH)
 
 #endif

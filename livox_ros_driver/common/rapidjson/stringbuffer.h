@@ -23,7 +23,7 @@
 #include "stream.h"
 
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
-#include <utility> // std::move
+#include <utility>  // std::move
 #endif
 
 #include "internal/stack.h"
@@ -43,7 +43,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 */
 template <typename Encoding, typename Allocator = CrtAllocator>
 class GenericStringBuffer {
-public:
+ public:
   typedef typename Encoding::Ch Ch;
 
   GenericStringBuffer(Allocator *allocator = 0,
@@ -54,8 +54,7 @@ public:
   GenericStringBuffer(GenericStringBuffer &&rhs)
       : stack_(std::move(rhs.stack_)) {}
   GenericStringBuffer &operator=(GenericStringBuffer &&rhs) {
-    if (&rhs != this)
-      stack_ = std::move(rhs.stack_);
+    if (&rhs != this) stack_ = std::move(rhs.stack_);
     return *this;
   }
 #endif
@@ -94,7 +93,7 @@ public:
   static const size_t kDefaultCapacity = 256;
   mutable internal::Stack<Allocator> stack_;
 
-private:
+ private:
   // Prohibit copy constructor & assignment operator.
   GenericStringBuffer(const GenericStringBuffer &);
   GenericStringBuffer &operator=(const GenericStringBuffer &);
@@ -128,4 +127,4 @@ RAPIDJSON_NAMESPACE_END
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_STRINGBUFFER_H_
+#endif  // RAPIDJSON_STRINGBUFFER_H_

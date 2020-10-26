@@ -23,9 +23,9 @@
 //
 
 #include "comm_protocol.h"
-#include <iostream>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
 
 namespace livox_ros {
 
@@ -116,23 +116,23 @@ int32_t CommProtocol::ParseCommStream(CommPacket *o_pack) {
   while ((GetValidDataSize() > protocol_->GetPreambleLen()) &&
          (GetValidDataSize() > offset_to_read_index_)) {
     switch (fsm_parse_step_) {
-    case kSearchPacketPreamble: {
-      FsmSearchPacketPreamble();
-      break;
-    }
-    case kFindPacketLength: {
-      FsmFindPacketLength();
-      break;
-    }
-    case kGetPacketData: {
-      ret = FsmGetPacketData(o_pack);
-      break;
-    }
-    default: { FsmParserStateTransfer(kSearchPacketPreamble); }
+      case kSearchPacketPreamble: {
+        FsmSearchPacketPreamble();
+        break;
+      }
+      case kFindPacketLength: {
+        FsmFindPacketLength();
+        break;
+      }
+      case kGetPacketData: {
+        ret = FsmGetPacketData(o_pack);
+        break;
+      }
+      default: { FsmParserStateTransfer(kSearchPacketPreamble); }
     }
 
     /* Must exit when in the below case */
-    if ((ret == kParseSuccess) || (ret == kParseNeedMoreData)) break; 
+    if ((ret == kParseSuccess) || (ret == kParseNeedMoreData)) break;
   }
 
   return ret;
@@ -221,4 +221,4 @@ int32_t CommProtocol::FsmGetPacketData(CommPacket *o_pack) {
   return ret;
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

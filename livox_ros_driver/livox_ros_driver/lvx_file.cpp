@@ -23,9 +23,9 @@
 //
 
 #include "lvx_file.h"
-#include <cmath>
 #include <string.h>
 #include <time.h>
+#include <cmath>
 
 #include "lds.h"
 #include "rapidxml/rapidxml.hpp"
@@ -40,8 +40,14 @@ const char *kLvxHeaderSigStr = "livox_tech";
 const uint32_t kLvxHeaderMagicCode = 0xac0ea767;
 
 LvxFileHandle::LvxFileHandle()
-    : file_ver_(kLvxFileV1), device_count_(0), cur_frame_index_(0),
-      cur_offset_(0), data_start_offset_(0), size_(0), mode_(0), state_(0) {
+    : file_ver_(kLvxFileV1),
+      device_count_(0),
+      cur_frame_index_(0),
+      cur_offset_(0),
+      data_start_offset_(0),
+      size_(0),
+      mode_(0),
+      state_(0) {
   memset((void *)&public_header_, 0, sizeof(public_header_));
   memset((void *)&private_header_, 0, sizeof(private_header_));
   memset((void *)&private_header_v0_, 0, sizeof(private_header_v0_));
@@ -151,7 +157,6 @@ bool LvxFileHandle::PrepareDataRead() {
 }
 
 int LvxFileHandle::Open(const char *filename, std::ios_base::openmode mode) {
-
   if ((mode & std::ios::in) == std::ios::in) {
     state_ = kLvxFileOk;
     lvx_file_.open(filename, mode | std::ios_base::binary | std::ios_base::ate);
@@ -298,8 +303,7 @@ void LvxFileHandle::SaveFrameToLvxFile(
 }
 
 void LvxFileHandle::CloseLvxFile() {
-  if (lvx_file_ && lvx_file_.is_open())
-    lvx_file_.close();
+  if (lvx_file_ && lvx_file_.is_open()) lvx_file_.close();
 }
 
 void LvxFileHandle::BasePointsHandle(LivoxEthPacket *data,
@@ -416,4 +420,4 @@ void ParseExtrinsicXml(DeviceItem &item, LvxFileDeviceInfo &info) {
   }
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

@@ -37,8 +37,8 @@ RAPIDJSON_NAMESPACE_BEGIN
 /*! \see PrettyWriter::SetFormatOptions
  */
 enum PrettyFormatOptions {
-  kFormatDefault = 0,        //!< Default pretty formatting.
-  kFormatSingleLineArray = 1 //!< Format arrays on a single line.
+  kFormatDefault = 0,         //!< Default pretty formatting.
+  kFormatSingleLineArray = 1  //!< Format arrays on a single line.
 };
 
 //! Writer with indentation and spacing.
@@ -54,7 +54,7 @@ template <typename OutputStream, typename SourceEncoding = UTF8<>,
           unsigned writeFlags = kWriteDefaultFlags>
 class PrettyWriter : public Writer<OutputStream, SourceEncoding, TargetEncoding,
                                    StackAllocator, writeFlags> {
-public:
+ public:
   typedef Writer<OutputStream, SourceEncoding, TargetEncoding, StackAllocator,
                  writeFlags>
       Base;
@@ -67,7 +67,9 @@ public:
   */
   explicit PrettyWriter(OutputStream &os, StackAllocator *allocator = 0,
                         size_t levelDepth = Base::kDefaultLevelDepth)
-      : Base(os, allocator, levelDepth), indentChar_(' '), indentCharCount_(4),
+      : Base(os, allocator, levelDepth),
+        indentChar_(' '),
+        indentCharCount_(4),
         formatOptions_(kFormatDefault) {}
 
   explicit PrettyWriter(StackAllocator *allocator = 0,
@@ -76,7 +78,8 @@ public:
 
 #if RAPIDJSON_HAS_CXX11_RVALUE_REFS
   PrettyWriter(PrettyWriter &&rhs)
-      : Base(std::forward<PrettyWriter>(rhs)), indentChar_(rhs.indentChar_),
+      : Base(std::forward<PrettyWriter>(rhs)),
+        indentChar_(rhs.indentChar_),
         indentCharCount_(rhs.indentCharCount_),
         formatOptions_(rhs.formatOptions_) {}
 #endif
@@ -177,13 +180,13 @@ public:
   bool EndObject(SizeType memberCount = 0) {
     (void)memberCount;
     RAPIDJSON_ASSERT(Base::level_stack_.GetSize() >=
-                     sizeof(typename Base::Level)); // not inside an Object
+                     sizeof(typename Base::Level));  // not inside an Object
     RAPIDJSON_ASSERT(!Base::level_stack_.template Top<typename Base::Level>()
-                          ->inArray); // currently inside an Array, not Object
+                          ->inArray);  // currently inside an Array, not Object
     RAPIDJSON_ASSERT(
         0 ==
         Base::level_stack_.template Top<typename Base::Level>()->valueCount %
-            2); // Object has a Key without a Value
+            2);  // Object has a Key without a Value
 
     bool empty =
         Base::level_stack_.template Pop<typename Base::Level>(1)->valueCount ==
@@ -196,7 +199,7 @@ public:
     bool ret = Base::EndValue(Base::WriteEndObject());
     (void)ret;
     RAPIDJSON_ASSERT(ret == true);
-    if (Base::level_stack_.Empty()) // end of json text
+    if (Base::level_stack_.Empty())  // end of json text
       Base::Flush();
     return true;
   }
@@ -225,7 +228,7 @@ public:
     bool ret = Base::EndValue(Base::WriteEndArray());
     (void)ret;
     RAPIDJSON_ASSERT(ret == true);
-    if (Base::level_stack_.Empty()) // end of json text
+    if (Base::level_stack_.Empty())  // end of json text
       Base::Flush();
     return true;
   }
@@ -256,26 +259,25 @@ public:
     return Base::EndValue(Base::WriteRawValue(json, length));
   }
 
-protected:
+ protected:
   void PrettyPrefix(Type type) {
     (void)type;
-    if (Base::level_stack_.GetSize() != 0) { // this value is not at root
+    if (Base::level_stack_.GetSize() != 0) {  // this value is not at root
       typename Base::Level *level =
           Base::level_stack_.template Top<typename Base::Level>();
 
       if (level->inArray) {
         if (level->valueCount > 0) {
           Base::os_->Put(
-              ','); // add comma if it is not the first element in array
-          if (formatOptions_ & kFormatSingleLineArray)
-            Base::os_->Put(' ');
+              ',');  // add comma if it is not the first element in array
+          if (formatOptions_ & kFormatSingleLineArray) Base::os_->Put(' ');
         }
 
         if (!(formatOptions_ & kFormatSingleLineArray)) {
           Base::os_->Put('\n');
           WriteIndent();
         }
-      } else { // in object
+      } else {  // in object
         if (level->valueCount > 0) {
           if (level->valueCount % 2 == 0) {
             Base::os_->Put(',');
@@ -287,16 +289,15 @@ protected:
         } else
           Base::os_->Put('\n');
 
-        if (level->valueCount % 2 == 0)
-          WriteIndent();
+        if (level->valueCount % 2 == 0) WriteIndent();
       }
       if (!level->inArray && level->valueCount % 2 == 0)
-        RAPIDJSON_ASSERT(type == kStringType); // if it's in object, then even
-                                               // number should be a name
+        RAPIDJSON_ASSERT(type == kStringType);  // if it's in object, then even
+                                                // number should be a name
       level->valueCount++;
     } else {
       RAPIDJSON_ASSERT(
-          !Base::hasRoot_); // Should only has one and only one root.
+          !Base::hasRoot_);  // Should only has one and only one root.
       Base::hasRoot_ = true;
     }
   }
@@ -313,7 +314,7 @@ protected:
   unsigned indentCharCount_;
   PrettyFormatOptions formatOptions_;
 
-private:
+ private:
   // Prohibit copy constructor & assignment operator.
   PrettyWriter(const PrettyWriter &);
   PrettyWriter &operator=(const PrettyWriter &);
@@ -329,4 +330,4 @@ RAPIDJSON_DIAG_POP
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_RAPIDJSON_H_
+#endif  // RAPIDJSON_RAPIDJSON_H_

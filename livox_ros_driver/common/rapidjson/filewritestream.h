@@ -19,8 +19,8 @@
 #ifndef RAPIDJSON_FILEWRITESTREAM_H_
 #define RAPIDJSON_FILEWRITESTREAM_H_
 
-#include "stream.h"
 #include <cstdio>
+#include "stream.h"
 
 #ifdef __clang__
 RAPIDJSON_DIAG_PUSH
@@ -34,18 +34,19 @@ RAPIDJSON_NAMESPACE_BEGIN
     \note implements Stream concept
 */
 class FileWriteStream {
-public:
-  typedef char Ch; //!< Character type. Only support char.
+ public:
+  typedef char Ch;  //!< Character type. Only support char.
 
   FileWriteStream(std::FILE *fp, char *buffer, size_t bufferSize)
-      : fp_(fp), buffer_(buffer), bufferEnd_(buffer + bufferSize),
+      : fp_(fp),
+        buffer_(buffer),
+        bufferEnd_(buffer + bufferSize),
         current_(buffer_) {
     RAPIDJSON_ASSERT(fp_ != 0);
   }
 
   void Put(char c) {
-    if (current_ >= bufferEnd_)
-      Flush();
+    if (current_ >= bufferEnd_) Flush();
 
     *current_++ = c;
   }
@@ -100,7 +101,7 @@ public:
     return 0;
   }
 
-private:
+ private:
   // Prohibit copy constructor & assignment operator.
   FileWriteStream(const FileWriteStream &);
   FileWriteStream &operator=(const FileWriteStream &);
@@ -113,7 +114,8 @@ private:
 
 //! Implement specialized version of PutN() with memset() for better
 //! performance.
-template <> inline void PutN(FileWriteStream &stream, char c, size_t n) {
+template <>
+inline void PutN(FileWriteStream &stream, char c, size_t n) {
   stream.PutN(c, n);
 }
 
@@ -123,4 +125,4 @@ RAPIDJSON_NAMESPACE_END
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_FILESTREAM_H_
+#endif  // RAPIDJSON_FILESTREAM_H_

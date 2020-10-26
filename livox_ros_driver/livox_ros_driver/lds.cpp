@@ -24,16 +24,15 @@
 
 #include "lds.h"
 
-#include <chrono>
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <chrono>
 
 namespace livox_ros {
 
-/** Common function ------
- * ----------------------------------------------------------------------- */
+/** Common function --------------------------------------------------------- */
 bool IsFilePathValid(const char *path_str) {
   int str_len = strlen(path_str);
 
@@ -44,15 +43,14 @@ bool IsFilePathValid(const char *path_str) {
   }
 }
 
-uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src_) {
-
+uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src) {
   LivoxEthPacket *raw_packet =
       reinterpret_cast<LivoxEthPacket *>(packet->raw_data);
   LdsStamp timestamp;
   memcpy(timestamp.stamp_bytes, raw_packet->timestamp, sizeof(timestamp));
 
   if (raw_packet->timestamp_type == kTimestampTypePps) {
-    if (data_src_ != kSourceLvxFile) {
+    if (data_src != kSourceLvxFile) {
       return (timestamp.stamp + packet->time_rcv);
     } else {
       return timestamp.stamp;
@@ -64,17 +62,17 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src_) {
   } else if (raw_packet->timestamp_type == kTimestampTypePpsGps) {
     struct tm time_utc;
     time_utc.tm_isdst = 0;
-    time_utc.tm_year = raw_packet->timestamp[0] + 100; // map 2000 to 1990
-    time_utc.tm_mon  = raw_packet->timestamp[1] - 1;   // map 1~12 to 0~11
+    time_utc.tm_year = raw_packet->timestamp[0] + 100;  // map 2000 to 1990
+    time_utc.tm_mon = raw_packet->timestamp[1] - 1;     // map 1~12 to 0~11
     time_utc.tm_mday = raw_packet->timestamp[2];
     time_utc.tm_hour = raw_packet->timestamp[3];
     time_utc.tm_min = 0;
     time_utc.tm_sec = 0;
 
-    //uint64_t time_epoch = mktime(&time_utc);
-    uint64_t time_epoch = timegm(&time_utc); // no timezone
-    time_epoch = time_epoch * 1000000 + timestamp.stamp_word.high; // to us
-    time_epoch = time_epoch * 1000;                                // to ns
+    // uint64_t time_epoch = mktime(&time_utc);
+    uint64_t time_epoch = timegm(&time_utc);  // no timezone
+    time_epoch = time_epoch * 1000000 + timestamp.stamp_word.high;  // to us
+    time_epoch = time_epoch * 1000;                                 // to ns
 
     return time_epoch;
   } else {
@@ -83,8 +81,10 @@ uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src_) {
   }
 }
 
-uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint32_t data_type) {
-  uint32_t queue_size = (interval_ms * GetPacketNumPerSec(data_type)) / 1000;
+uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint8_t product_type,
+                                  uint8_t data_type) {
+  uint32_t queue_size =
+      (interval_ms * GetPacketNumPerSec(product_type, data_type)) / 1000;
 
   if (queue_size < kMinEthPacketQueueSize) {
     queue_size = kMinEthPacketQueueSize;
@@ -176,14 +176,15 @@ void PointExtrisincCompensation(PointXyz *dst_point, const PointXyz &src_point,
 /** Livox point procees for different raw data format
  * --------------------------------------------*/
 uint8_t *LivoxPointToPxyzrtl(uint8_t *point_buf, LivoxEthPacket *eth_packet,
-                             ExtrinsicParameter &extrinsic) {
+    ExtrinsicParameter &extrinsic, uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxPoint *raw_point = reinterpret_cast<LivoxPoint *>(eth_packet->data);
 
   while (points_per_packet) {
     RawPointConvert((LivoxPointXyzr *)dst_point, raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && IsTripleFloatNoneZero(raw_point->x,
+        raw_point->y, raw_point->z)) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
@@ -197,8 +198,8 @@ uint8_t *LivoxPointToPxyzrtl(uint8_t *point_buf, LivoxEthPacket *eth_packet,
   return (uint8_t *)dst_point;
 }
 
-uint8_t *LivoxRawPointToPxyzrtl(uint8_t *point_buf, LivoxEthPacket *eth_packet,
-                                ExtrinsicParameter &extrinsic) {
+static uint8_t *LivoxRawPointToPxyzrtl(uint8_t *point_buf, LivoxEthPacket *eth_packet,
+    ExtrinsicParameter &extrinsic, uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxRawPoint *raw_point =
@@ -206,7 +207,8 @@ uint8_t *LivoxRawPointToPxyzrtl(uint8_t *point_buf, LivoxEthPacket *eth_packet,
 
   while (points_per_packet) {
     RawPointConvert((LivoxPointXyzr *)dst_point, raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && IsTripleIntNoneZero(raw_point->x,
+        raw_point->y, raw_point->z)) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
@@ -220,9 +222,9 @@ uint8_t *LivoxRawPointToPxyzrtl(uint8_t *point_buf, LivoxEthPacket *eth_packet,
   return (uint8_t *)dst_point;
 }
 
-uint8_t *LivoxSpherPointToPxyzrtl(uint8_t *point_buf,
-                                  LivoxEthPacket *eth_packet,
-                                  ExtrinsicParameter &extrinsic) {
+static uint8_t *LivoxSpherPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxSpherPoint *raw_point =
@@ -230,7 +232,7 @@ uint8_t *LivoxSpherPointToPxyzrtl(uint8_t *point_buf,
 
   while (points_per_packet) {
     RawPointConvert((LivoxPointXyzr *)dst_point, raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && raw_point->depth) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
@@ -244,9 +246,9 @@ uint8_t *LivoxSpherPointToPxyzrtl(uint8_t *point_buf,
   return (uint8_t *)dst_point;
 }
 
-uint8_t *LivoxExtendRawPointToPxyzrtl(uint8_t *point_buf,
-                                      LivoxEthPacket *eth_packet,
-                                      ExtrinsicParameter &extrinsic) {
+static uint8_t *LivoxExtendRawPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxExtendRawPoint *raw_point =
@@ -255,13 +257,17 @@ uint8_t *LivoxExtendRawPointToPxyzrtl(uint8_t *point_buf,
   uint8_t line_id = 0;
   while (points_per_packet) {
     RawPointConvert((LivoxPointXyzr *)dst_point, (LivoxRawPoint *)raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && IsTripleIntNoneZero(raw_point->x,
+        raw_point->y, raw_point->z)) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
     dst_point->tag = raw_point->tag;
-    dst_point->line = line_id;
-    dst_point->line = dst_point->line % 6;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
     ++raw_point;
     ++dst_point;
     ++line_id;
@@ -271,9 +277,9 @@ uint8_t *LivoxExtendRawPointToPxyzrtl(uint8_t *point_buf,
   return (uint8_t *)dst_point;
 }
 
-uint8_t *LivoxExtendSpherPointToPxyzrtl(uint8_t *point_buf,
-                                        LivoxEthPacket *eth_packet,
-                                        ExtrinsicParameter &extrinsic) {
+static uint8_t *LivoxExtendSpherPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxExtendSpherPoint *raw_point =
@@ -282,13 +288,16 @@ uint8_t *LivoxExtendSpherPointToPxyzrtl(uint8_t *point_buf,
   uint8_t line_id = 0;
   while (points_per_packet) {
     RawPointConvert((LivoxPointXyzr *)dst_point, (LivoxSpherPoint *)raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && raw_point->depth) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
     dst_point->tag = raw_point->tag;
-    dst_point->line = line_id;
-    dst_point->line = dst_point->line % 6;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
     ++raw_point;
     ++dst_point;
     ++line_id;
@@ -298,25 +307,30 @@ uint8_t *LivoxExtendSpherPointToPxyzrtl(uint8_t *point_buf,
   return (uint8_t *)dst_point;
 }
 
-uint8_t *LivoxDualExtendRawPointToPxyzrtl(uint8_t *point_buf,
-                                          LivoxEthPacket *eth_packet,
-                                          ExtrinsicParameter &extrinsic) {
+static uint8_t *LivoxDualExtendRawPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxExtendRawPoint *raw_point =
       reinterpret_cast<LivoxExtendRawPoint *>(eth_packet->data);
 
+  /* LivoxDualExtendRawPoint = 2*LivoxExtendRawPoint */
+  points_per_packet = points_per_packet * 2;
   uint8_t line_id = 0;
   while (points_per_packet) {
     RawPointConvert((LivoxPointXyzr *)dst_point, (LivoxRawPoint *)raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && IsTripleIntNoneZero(raw_point->x,
+        raw_point->y, raw_point->z)) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
     dst_point->tag = raw_point->tag;
-    dst_point->line =
-        line_id / 2; /* LivoxDualExtendRawPoint = 2*LivoxExtendRawPoint */
-    dst_point->line = dst_point->line % 6;
+    if (line_num > 1) {
+      dst_point->line = (line_id / 2) % line_num;
+    } else {
+      dst_point->line = 0;
+    }
     ++raw_point;
     ++dst_point;
     ++line_id;
@@ -326,9 +340,9 @@ uint8_t *LivoxDualExtendRawPointToPxyzrtl(uint8_t *point_buf,
   return (uint8_t *)dst_point;
 }
 
-uint8_t *LivoxDualExtendSpherPointToPxyzrtl(uint8_t *point_buf,
-                                            LivoxEthPacket *eth_packet,
-                                            ExtrinsicParameter &extrinsic) {
+static uint8_t *LivoxDualExtendSpherPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
   LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
   uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
   LivoxDualExtendSpherPoint *raw_point =
@@ -339,22 +353,119 @@ uint8_t *LivoxDualExtendSpherPointToPxyzrtl(uint8_t *point_buf,
     RawPointConvert((LivoxPointXyzr *)dst_point,
                     (LivoxPointXyzr *)(dst_point + 1),
                     (LivoxDualExtendSpherPoint *)raw_point);
-    if (extrinsic.enable) {
+    if (extrinsic.enable && raw_point->depth1) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
     dst_point->tag = raw_point->tag1;
-    dst_point->line = line_id;
-    dst_point->line = dst_point->line % 6;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
     ++dst_point;
 
-    if (extrinsic.enable) {
+    if (extrinsic.enable && raw_point->depth2) {
       PointXyz src_point = *((PointXyz *)dst_point);
       PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
     }
     dst_point->tag = raw_point->tag2;
-    dst_point->line = line_id;
-    dst_point->line = dst_point->line % 6;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
+    ++dst_point;
+
+    ++raw_point; /* only increase one */
+    ++line_id;
+    --points_per_packet;
+  }
+
+  return (uint8_t *)dst_point;
+}
+
+static uint8_t *LivoxTripleExtendRawPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
+  LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
+  uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
+  LivoxExtendRawPoint *raw_point =
+      reinterpret_cast<LivoxExtendRawPoint *>(eth_packet->data);
+
+  /* LivoxTripleExtendRawPoint = 3*LivoxExtendRawPoint, echo_num */
+  points_per_packet = points_per_packet * 3;
+  uint8_t line_id = 0;
+  while (points_per_packet) {
+    RawPointConvert((LivoxPointXyzr *)dst_point, (LivoxRawPoint *)raw_point);
+    if (extrinsic.enable && IsTripleIntNoneZero(raw_point->x,
+        raw_point->y, raw_point->z)) {
+      PointXyz src_point = *((PointXyz *)dst_point);
+      PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
+    }
+    dst_point->tag = raw_point->tag;
+    if (line_num > 1) {
+      dst_point->line = (line_id / 3) % line_num;
+    } else {
+      dst_point->line = 0;
+    }
+    ++raw_point;
+    ++dst_point;
+    ++line_id;
+    --points_per_packet;
+  }
+
+  return (uint8_t *)dst_point;
+}
+
+static uint8_t *LivoxTripleExtendSpherPointToPxyzrtl(uint8_t *point_buf, \
+    LivoxEthPacket *eth_packet, ExtrinsicParameter &extrinsic, \
+    uint32_t line_num) {
+  LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
+  uint32_t points_per_packet = GetPointsPerPacket(eth_packet->data_type);
+  LivoxTripleExtendSpherPoint *raw_point =
+      reinterpret_cast<LivoxTripleExtendSpherPoint *>(eth_packet->data);
+
+  uint8_t line_id = 0;
+  while (points_per_packet) {
+    RawPointConvert((LivoxPointXyzr *)dst_point,
+                    (LivoxPointXyzr *)(dst_point + 1),
+                    (LivoxPointXyzr *)(dst_point + 2),
+                    (LivoxTripleExtendSpherPoint *)raw_point);
+    if (extrinsic.enable && raw_point->depth1) {
+      PointXyz src_point = *((PointXyz *)dst_point);
+      PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
+    }
+    dst_point->tag = raw_point->tag1;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
+    ++dst_point;
+
+    if (extrinsic.enable && raw_point->depth2) {
+      PointXyz src_point = *((PointXyz *)dst_point);
+      PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
+    }
+    dst_point->tag = raw_point->tag2;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
+    ++dst_point;
+
+    if (extrinsic.enable && raw_point->depth3) {
+      PointXyz src_point = *((PointXyz *)dst_point);
+      PointExtrisincCompensation((PointXyz *)dst_point, src_point, extrinsic);
+    }
+    dst_point->tag = raw_point->tag3;
+    if (line_num > 1) {
+      dst_point->line = line_id % line_num;
+    } else {
+      dst_point->line = 0;
+    }
     ++dst_point;
 
     ++raw_point; /* only increase one */
@@ -377,7 +488,10 @@ const PointConvertHandler to_pxyzi_handler_table[kMaxPointDataType] = {
     LivoxExtendSpherPointToPxyzrtl,
     LivoxDualExtendRawPointToPxyzrtl,
     LivoxDualExtendSpherPointToPxyzrtl,
-    nullptr};
+    nullptr,
+    LivoxTripleExtendRawPointToPxyzrtl,
+    LivoxTripleExtendSpherPointToPxyzrtl
+    };
 
 PointConvertHandler GetConvertHandler(uint8_t data_type) {
   if (data_type < kMaxPointDataType)
@@ -386,22 +500,11 @@ PointConvertHandler GetConvertHandler(uint8_t data_type) {
     return nullptr;
 }
 
-uint8_t *FillZeroPointXyzrtl(uint8_t *point_buf, uint32_t num) {
-  LivoxPointXyzrtl *dst_point = (LivoxPointXyzrtl *)point_buf;
-  uint32_t points_per_packet = num;
-
-  while (points_per_packet) {
-    dst_point->x = 0;
-    dst_point->y = 0;
-    dst_point->z = 0;
-    dst_point->reflectivity = 0;
-    dst_point->tag = 0;
-    dst_point->line = 0;
-    ++dst_point;
-    --points_per_packet;
-  }
-
-  return (uint8_t *)dst_point;
+void ZeroPointDataOfStoragePacket(StoragePacket* storage_packet) {
+  LivoxEthPacket *raw_packet =
+      reinterpret_cast<LivoxEthPacket *>(storage_packet->raw_data);
+  uint32_t point_length = GetPointLen(raw_packet->data_type);
+  memset(raw_packet->data, 0, point_length * storage_packet->point_num);
 }
 
 #if 0
@@ -415,14 +518,11 @@ static void PointCloudConvert(LivoxPoint *p_dpoint, LivoxRawPoint *p_raw_point) 
 
 #endif
 
-/* Member function ------
- * ----------------------------------------------------------------------- */
-
-Lds::Lds(uint32_t buffer_time_ms, uint8_t data_src)
-    : buffer_time_ms_(buffer_time_ms), data_src_(data_src) {
-  lidar_count_ = kMaxSourceLidar;
-  request_exit_ = false;
-  ResetLds(data_src_);
+/* Member function --------------------------------------------------------- */
+Lds::Lds(uint32_t buffer_time_ms, uint8_t data_src) : \
+    lidar_count_(kMaxSourceLidar), semaphore_(0), \
+    buffer_time_ms_(buffer_time_ms), data_src_(data_src), request_exit_(false) {
+    ResetLds(data_src_);
 };
 
 Lds::~Lds() {
@@ -455,6 +555,31 @@ void Lds::ResetLds(uint8_t data_src) {
   }
 }
 
+void Lds::RequestExit() {
+  request_exit_ = true;
+}
+
+bool Lds::IsAllQueueEmpty() {
+  for (int i = 0; i < lidar_count_; i++) {
+    if (!QueueIsEmpty(&lidars_[i].data)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool Lds::IsAllQueueReadStop() {
+  for (int i = 0; i < lidar_count_; i++) {
+    uint32_t data_size = QueueUsedSize(&lidars_[i].data);
+    if (data_size && (data_size > lidars_[i].onetime_publish_packets)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 uint8_t Lds::GetDeviceType(uint8_t handle) {
   if (handle < kMaxSourceLidar) {
     return lidars_[handle].info.type;
@@ -463,6 +588,92 @@ uint8_t Lds::GetDeviceType(uint8_t handle) {
   }
 }
 
+void Lds::UpdateLidarInfoByEthPacket(LidarDevice *p_lidar, \
+    LivoxEthPacket* eth_packet) {
+  if (p_lidar->raw_data_type != eth_packet->data_type) {
+    p_lidar->raw_data_type = eth_packet->data_type;
+    p_lidar->packet_interval = GetPacketInterval(p_lidar->info.type, \
+        eth_packet->data_type);
+    p_lidar->packet_interval_max = p_lidar->packet_interval * 1.8f;
+    p_lidar->onetime_publish_packets = \
+        GetPacketNumPerSec(p_lidar->info.type, \
+        p_lidar->raw_data_type) * buffer_time_ms_ / 1000;
+    printf("DataType[%d] PacketInterval[%d] PublishPackets[%d]\n", \
+        p_lidar->raw_data_type, p_lidar->packet_interval, \
+        p_lidar->onetime_publish_packets);
+  }
+}
+
+void Lds::StorageRawPacket(uint8_t handle, LivoxEthPacket* eth_packet) {
+  LidarDevice *p_lidar = &lidars_[handle];
+  LidarPacketStatistic *packet_statistic = &p_lidar->statistic_info;
+  LdsStamp cur_timestamp;
+  memcpy(cur_timestamp.stamp_bytes, eth_packet->timestamp,
+         sizeof(cur_timestamp));
+
+  if (kImu != eth_packet->data_type) {
+    UpdateLidarInfoByEthPacket(p_lidar, eth_packet);
+    if (eth_packet->timestamp_type == kTimestampTypePps) {
+      /** Whether a new sync frame */
+      if ((cur_timestamp.stamp < packet_statistic->last_timestamp) &&
+          (cur_timestamp.stamp < kPacketTimeGap)) {
+        auto cur_time = std::chrono::high_resolution_clock::now();
+        int64_t sync_time = cur_time.time_since_epoch().count();
+        /** used receive time as timebase */
+        packet_statistic->timebase = sync_time;
+      }
+    }
+    packet_statistic->last_timestamp = cur_timestamp.stamp;
+
+    LidarDataQueue *p_queue = &p_lidar->data;
+    if (nullptr == p_queue->storage_packet) {
+      uint32_t queue_size = CalculatePacketQueueSize(
+          buffer_time_ms_, p_lidar->info.type, eth_packet->data_type);
+      queue_size = queue_size * 8; /* 8 multiple the min size */
+      InitQueue(p_queue, queue_size);
+      printf("Lidar%02d[%s] queue size : %d %d\n", p_lidar->handle,
+             p_lidar->info.broadcast_code, queue_size, p_queue->size);
+    }
+    if (!QueueIsFull(p_queue)) {
+      QueuePushAny(p_queue, (uint8_t *)eth_packet, \
+          GetEthPacketLen(eth_packet->data_type), \
+          packet_statistic->timebase, \
+          GetPointsPerPacket(eth_packet->data_type));
+      if (QueueUsedSize(p_queue) > p_lidar->onetime_publish_packets) {
+        if (semaphore_.GetCount() <= 0) {
+          semaphore_.Signal();
+        }
+      }
+    }
+  } else {
+    if (eth_packet->timestamp_type == kTimestampTypePps) {
+      /** Whether a new sync frame */
+      if ((cur_timestamp.stamp < packet_statistic->last_imu_timestamp) &&
+          (cur_timestamp.stamp < kPacketTimeGap)) {
+        auto cur_time = std::chrono::high_resolution_clock::now();
+        int64_t sync_time = cur_time.time_since_epoch().count();
+        /** used receive time as timebase */
+        packet_statistic->imu_timebase = sync_time;
+      }
+    }
+    packet_statistic->last_imu_timestamp = cur_timestamp.stamp;
+
+    LidarDataQueue *p_queue = &p_lidar->imu_data;
+    if (nullptr == p_queue->storage_packet) {
+      uint32_t queue_size = 256;  /* fixed imu data queue size */
+      InitQueue(p_queue, queue_size);
+      printf("Lidar%02d[%s] imu queue size : %d %d\n", p_lidar->handle,
+             p_lidar->info.broadcast_code, queue_size, p_queue->size);
+    }
+    if (!QueueIsFull(p_queue)) {
+      QueuePushAny(p_queue, (uint8_t *)eth_packet, \
+          GetEthPacketLen(eth_packet->data_type),\
+          packet_statistic->imu_timebase, \
+          GetPointsPerPacket(eth_packet->data_type));
+    }
+  }
+}
+
 void Lds::PrepareExit(void) {}
 
-} // namespace livox_ros
+}  // namespace livox_ros

@@ -19,8 +19,8 @@
 #ifndef RAPIDJSON_FILEREADSTREAM_H_
 #define RAPIDJSON_FILEREADSTREAM_H_
 
-#include "stream.h"
 #include <cstdio>
+#include "stream.h"
 
 #ifdef __clang__
 RAPIDJSON_DIAG_PUSH
@@ -36,8 +36,8 @@ RAPIDJSON_NAMESPACE_BEGIN
     \note implements Stream concept
 */
 class FileReadStream {
-public:
-  typedef char Ch; //!< Character type (byte).
+ public:
+  typedef char Ch;  //!< Character type (byte).
 
   //! Constructor.
   /*!
@@ -46,8 +46,14 @@ public:
       \param bufferSize size of buffer in bytes. Must >=4 bytes.
   */
   FileReadStream(std::FILE *fp, char *buffer, size_t bufferSize)
-      : fp_(fp), buffer_(buffer), bufferSize_(bufferSize), bufferLast_(0),
-        current_(buffer_), readCount_(0), count_(0), eof_(false) {
+      : fp_(fp),
+        buffer_(buffer),
+        bufferSize_(bufferSize),
+        bufferLast_(0),
+        current_(buffer_),
+        readCount_(0),
+        count_(0),
+        eof_(false) {
     RAPIDJSON_ASSERT(fp_ != 0);
     RAPIDJSON_ASSERT(bufferSize >= 4);
     Read();
@@ -80,7 +86,7 @@ public:
     return (current_ + 4 - !eof_ <= bufferLast_) ? current_ : 0;
   }
 
-private:
+ private:
   void Read() {
     if (current_ < bufferLast_)
       ++current_;
@@ -104,7 +110,7 @@ private:
   Ch *bufferLast_;
   Ch *current_;
   size_t readCount_;
-  size_t count_; //!< Number of characters read
+  size_t count_;  //!< Number of characters read
   bool eof_;
 };
 
@@ -114,4 +120,4 @@ RAPIDJSON_NAMESPACE_END
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_FILESTREAM_H_
+#endif  // RAPIDJSON_FILESTREAM_H_

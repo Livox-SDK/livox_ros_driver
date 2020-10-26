@@ -28,8 +28,8 @@
 #define LIVOX_ROS_DRIVER_LDS_LIDAR_H_
 
 #include <memory>
-#include <vector>
 #include <mutex>
+#include <vector>
 
 #include "lds.h"
 #include "livox_sdk.h"
@@ -42,7 +42,7 @@ namespace livox_ros {
  * LiDAR data source, data from dependent lidar.
  */
 class LdsLidar : public Lds {
-public:
+ public:
   static LdsLidar *GetInstance(uint32_t interval_ms) {
     static LdsLidar lds_lidar(interval_ms);
     return &lds_lidar;
@@ -52,7 +52,7 @@ public:
                    const char *user_config_path);
   int DeInitLdsLidar(void);
 
-private:
+ private:
   LdsLidar(uint32_t interval_ms);
   LdsLidar(const LdsLidar &) = delete;
   ~LdsLidar();
@@ -84,12 +84,12 @@ private:
                                uint8_t response, void *client_data);
   static void ReceiveSyncTimeCallback(const char *rmc, uint32_t rmc_length,
                                       void *client_data);
-  static void
-  GetLidarExtrinsicParameterCb(livox_status status, uint8_t handle,
-                               LidarGetExtrinsicParameterResponse *response,
-                               void *clent_data);
+  static void GetLidarExtrinsicParameterCb(
+      livox_status status, uint8_t handle,
+      LidarGetExtrinsicParameterResponse *response, void *clent_data);
   static void SetHighSensitivityCb(livox_status status, uint8_t handle,
-      DeviceParameterResponse *response, void *clent_data);
+                                   DeviceParameterResponse *response,
+                                   void *clent_data);
 
   void ResetLdsLidar(void);
   int AddBroadcastCodeToWhitelist(const char *broadcast_code);
@@ -116,5 +116,5 @@ private:
   std::mutex config_mutex_;
 };
 
-} // namespace livox_ros
+}  // namespace livox_ros
 #endif

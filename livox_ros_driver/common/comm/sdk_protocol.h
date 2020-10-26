@@ -25,9 +25,9 @@
 #ifndef LIVOX_SDK_PROTOCOL_H_
 #define LIVOX_SDK_PROTOCOL_H_
 
+#include <stdint.h>
 #include "FastCRC/FastCRC.h"
 #include "protocol.h"
-#include <stdint.h>
 
 namespace livox_ros {
 typedef enum { kSdkVerNone, kSdkVer0, kSdkVer1 } SdkVersion;
@@ -58,7 +58,7 @@ typedef struct {
 #pragma pack()
 
 class SdkProtocol : public Protocol {
-public:
+ public:
   SdkProtocol(uint16_t seed16, uint32_t seed32);
   ~SdkProtocol() = default;
 
@@ -78,9 +78,9 @@ public:
 
   int32_t CheckPacket(const uint8_t *buf) override;
 
-private:
+ private:
   FastCRC16 crc16_;
   FastCRC32 crc32_;
 };
-} // namespace livox_ros
-#endif // LIVOX_SDK_PROTOCOL_H_
+}  // namespace livox_ros
+#endif  // LIVOX_SDK_PROTOCOL_H_

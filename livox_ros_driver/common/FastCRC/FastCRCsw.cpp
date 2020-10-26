@@ -55,7 +55,6 @@ FastCRC16::FastCRC16(uint16_t seed) { seed_ = seed; }
  */
 
 uint16_t FastCRC16::mcrf4xx_calc(const uint8_t *data, uint16_t len) {
-
   uint16_t crc = seed_;
 
   while (((uintptr_t)data & 3) && len) {
@@ -90,11 +89,11 @@ FastCRC32::FastCRC32(uint32_t seed) { seed_ = seed; }
   crc = (table[(crc & 0xff) + 0x300]) ^ (table[((crc >> 8) & 0xff) + 0x200]) ^ \
         (table[((crc >> 16) & 0xff) + 0x100]) ^ (table[(crc >> 24) & 0xff]);
 
-#define crcsm_n4d(crc, data, table)                                            \
-  crc ^= data;                                                                 \
-  crc = (crc >> 8) ^ (table[crc & 0xff]);                                      \
-  crc = (crc >> 8) ^ (table[crc & 0xff]);                                      \
-  crc = (crc >> 8) ^ (table[crc & 0xff]);                                      \
+#define crcsm_n4d(crc, data, table)       \
+  crc ^= data;                            \
+  crc = (crc >> 8) ^ (table[crc & 0xff]); \
+  crc = (crc >> 8) ^ (table[crc & 0xff]); \
+  crc = (crc >> 8) ^ (table[crc & 0xff]); \
   crc = (crc >> 8) ^ (table[crc & 0xff]);
 
 /** CRC32
@@ -110,7 +109,6 @@ FastCRC32::FastCRC32(uint32_t seed) { seed_ = seed; }
 #endif
 
 uint32_t FastCRC32::crc32_calc(const uint8_t *data, uint16_t len) {
-
   uint32_t crc = seed_ ^ 0xffffffff;
 
   while (((uintptr_t)data & 3) && len) {

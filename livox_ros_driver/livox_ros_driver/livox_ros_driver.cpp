@@ -27,19 +27,18 @@
 #include <chrono>
 #include <vector>
 
+#include <ros/ros.h>
 #include "lddc.h"
 #include "lds_hub.h"
 #include "lds_lidar.h"
 #include "lds_lvx.h"
 #include "livox_sdk.h"
-#include <ros/ros.h>
 
 using namespace livox_ros;
 
 const int32_t kSdkVersionMajorLimit = 2;
 
 int main(int argc, char **argv) {
-
   ROS_INFO("Livox Ros Driver Version: %s", LIVOX_ROS_DRIVER_VERSION_STRING);
 
   /** Ros related */
@@ -59,7 +58,7 @@ int main(int argc, char **argv) {
     return 0;
   }
 
-  /** Init defualt system parameter */
+  /** Init default system parameter */
   int xfer_format = kPointCloud2Msg;
   int multi_topic = 0;
   int data_src = kSourceRawLidar;
@@ -82,7 +81,7 @@ int main(int argc, char **argv) {
   }
 
   /** Lidar data distribute control and lidar data source set */
-  Lddc *lddc = new Lddc(xfer_format, multi_topic, data_src, output_type, \
+  Lddc *lddc = new Lddc(xfer_format, multi_topic, data_src, output_type,
                         publish_freq, frame_id);
   lddc->SetRosNode(&livox_node);
 
@@ -159,14 +158,8 @@ int main(int argc, char **argv) {
   }
 
   ros::Time::init();
-  double poll_freq = publish_freq * 4;
-  if (data_src == kSourceLvxFile) {
-    poll_freq = 2000;
-  }
-  ros::Rate r(poll_freq);
   while (ros::ok()) {
     lddc->DistributeLidarData();
-    r.sleep();
   }
 
   return 0;

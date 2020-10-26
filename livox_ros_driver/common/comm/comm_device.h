@@ -67,5 +67,5 @@ typedef struct {
   } config;
 } CommDevConfig;
 
-} // namespace livox_ros
-#endif // COMM_COMM_DEVICE_H_
+}  // namespace livox_ros
+#endif  // COMM_COMM_DEVICE_H_

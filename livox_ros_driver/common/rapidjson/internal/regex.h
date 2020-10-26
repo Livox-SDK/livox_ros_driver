@@ -29,7 +29,7 @@ RAPIDJSON_DIAG_OFF(padded)
 RAPIDJSON_DIAG_OFF(switch - enum)
 #elif defined(_MSC_VER)
 RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
+RAPIDJSON_DIAG_OFF(4512)  // assignment operator could not be generated
 #endif
 
 #ifdef __GNUC__
@@ -47,21 +47,21 @@ namespace internal {
 ///////////////////////////////////////////////////////////////////////////////
 // DecodedStream
 
-template <typename SourceStream, typename Encoding> class DecodedStream {
-public:
+template <typename SourceStream, typename Encoding>
+class DecodedStream {
+ public:
   DecodedStream(SourceStream &ss) : ss_(ss), codepoint_() { Decode(); }
   unsigned Peek() { return codepoint_; }
   unsigned Take() {
     unsigned c = codepoint_;
-    if (c) // No further decoding when '\0'
+    if (c)  // No further decoding when '\0'
       Decode();
     return c;
   }
 
-private:
+ private:
   void Decode() {
-    if (!Encoding::Decode(ss_, &codepoint_))
-      codepoint_ = 0;
+    if (!Encoding::Decode(ss_, &codepoint_)) codepoint_ = 0;
   }
 
   SourceStream &ss_;
@@ -72,10 +72,11 @@ private:
 // GenericRegex
 
 static const SizeType kRegexInvalidState = ~SizeType(
-    0); //!< Represents an invalid index in GenericRegex::State::out, out1
+    0);  //!< Represents an invalid index in GenericRegex::State::out, out1
 static const SizeType kRegexInvalidRange = ~SizeType(0);
 
-template <typename Encoding, typename Allocator> class GenericRegexSearch;
+template <typename Encoding, typename Allocator>
+class GenericRegexSearch;
 
 //! Regular expression engine with subset of ECMAscript grammar.
 /*!
@@ -112,16 +113,21 @@ template <typename Encoding, typename Allocator> class GenericRegexSearch;
 */
 template <typename Encoding, typename Allocator = CrtAllocator>
 class GenericRegex {
-public:
+ public:
   typedef Encoding EncodingType;
   typedef typename Encoding::Ch Ch;
-  template <typename, typename> friend class GenericRegexSearch;
+  template <typename, typename>
+  friend class GenericRegexSearch;
 
   GenericRegex(const Ch *source, Allocator *allocator = 0)
       : ownAllocator_(allocator ? 0 : RAPIDJSON_NEW(Allocator)()),
         allocator_(allocator ? allocator : ownAllocator_),
-        states_(allocator_, 256), ranges_(allocator_, 256),
-        root_(kRegexInvalidState), stateCount_(), rangeCount_(), anchorBegin_(),
+        states_(allocator_, 256),
+        ranges_(allocator_, 256),
+        root_(kRegexInvalidState),
+        stateCount_(),
+        rangeCount_(),
+        anchorBegin_(),
         anchorEnd_() {
     GenericStringStream<Encoding> ss(source);
     DecodedStream<GenericStringStream<Encoding>, Encoding> ds(ss);
@@ -132,7 +138,7 @@ public:
 
   bool IsValid() const { return root_ != kRegexInvalidState; }
 
-private:
+ private:
   enum Operator {
     kZeroOrOne,
     kZeroOrMore,
@@ -142,19 +148,19 @@ private:
     kLeftParenthesis
   };
 
-  static const unsigned kAnyCharacterClass = 0xFFFFFFFF; //!< For '.'
+  static const unsigned kAnyCharacterClass = 0xFFFFFFFF;  //!< For '.'
   static const unsigned kRangeCharacterClass = 0xFFFFFFFE;
   static const unsigned kRangeNegationFlag = 0x80000000;
 
   struct Range {
-    unsigned start; //
+    unsigned start;  //
     unsigned end;
     SizeType next;
   };
 
   struct State {
-    SizeType out;  //!< Equals to kInvalid for matching state
-    SizeType out1; //!< Equals to non-kInvalid for split
+    SizeType out;   //!< Equals to kInvalid for matching state
+    SizeType out1;  //!< Equals to non-kInvalid for split
     SizeType rangeStart;
     unsigned codepoint;
   };
@@ -162,7 +168,7 @@ private:
   struct Frag {
     Frag(SizeType s, SizeType o, SizeType m) : start(s), out(o), minIndex(m) {}
     SizeType start;
-    SizeType out; //!< link-list of all output states
+    SizeType out;  //!< link-list of all output states
     SizeType minIndex;
   };
 
@@ -188,116 +194,108 @@ private:
 
   template <typename InputStream>
   void Parse(DecodedStream<InputStream, Encoding> &ds) {
-    Stack<Allocator> operandStack(allocator_, 256);  // Frag
-    Stack<Allocator> operatorStack(allocator_, 256); // Operator
+    Stack<Allocator> operandStack(allocator_, 256);   // Frag
+    Stack<Allocator> operatorStack(allocator_, 256);  // Operator
     Stack<Allocator> atomCountStack(allocator_,
-                                    256); // unsigned (Atom per parenthesis)
+                                    256);  // unsigned (Atom per parenthesis)
 
     *atomCountStack.template Push<unsigned>() = 0;
 
     unsigned codepoint;
     while (ds.Peek() != 0) {
       switch (codepoint = ds.Take()) {
-      case '^':
-        anchorBegin_ = true;
-        break;
+        case '^':
+          anchorBegin_ = true;
+          break;
 
-      case '$':
-        anchorEnd_ = true;
-        break;
+        case '$':
+          anchorEnd_ = true;
+          break;
 
-      case '|':
-        while (!operatorStack.Empty() &&
-               *operatorStack.template Top<Operator>() < kAlternation)
-          if (!Eval(operandStack, *operatorStack.template Pop<Operator>(1)))
-            return;
-        *operatorStack.template Push<Operator>() = kAlternation;
-        *atomCountStack.template Top<unsigned>() = 0;
-        break;
+        case '|':
+          while (!operatorStack.Empty() &&
+                 *operatorStack.template Top<Operator>() < kAlternation)
+            if (!Eval(operandStack, *operatorStack.template Pop<Operator>(1)))
+              return;
+          *operatorStack.template Push<Operator>() = kAlternation;
+          *atomCountStack.template Top<unsigned>() = 0;
+          break;
 
-      case '(':
-        *operatorStack.template Push<Operator>() = kLeftParenthesis;
-        *atomCountStack.template Push<unsigned>() = 0;
-        break;
+        case '(':
+          *operatorStack.template Push<Operator>() = kLeftParenthesis;
+          *atomCountStack.template Push<unsigned>() = 0;
+          break;
 
-      case ')':
-        while (!operatorStack.Empty() &&
-               *operatorStack.template Top<Operator>() != kLeftParenthesis)
-          if (!Eval(operandStack, *operatorStack.template Pop<Operator>(1)))
-            return;
-        if (operatorStack.Empty())
-          return;
-        operatorStack.template Pop<Operator>(1);
-        atomCountStack.template Pop<unsigned>(1);
-        ImplicitConcatenation(atomCountStack, operatorStack);
-        break;
+        case ')':
+          while (!operatorStack.Empty() &&
+                 *operatorStack.template Top<Operator>() != kLeftParenthesis)
+            if (!Eval(operandStack, *operatorStack.template Pop<Operator>(1)))
+              return;
+          if (operatorStack.Empty()) return;
+          operatorStack.template Pop<Operator>(1);
+          atomCountStack.template Pop<unsigned>(1);
+          ImplicitConcatenation(atomCountStack, operatorStack);
+          break;
 
-      case '?':
-        if (!Eval(operandStack, kZeroOrOne))
-          return;
-        break;
+        case '?':
+          if (!Eval(operandStack, kZeroOrOne)) return;
+          break;
 
-      case '*':
-        if (!Eval(operandStack, kZeroOrMore))
-          return;
-        break;
+        case '*':
+          if (!Eval(operandStack, kZeroOrMore)) return;
+          break;
 
-      case '+':
-        if (!Eval(operandStack, kOneOrMore))
-          return;
-        break;
+        case '+':
+          if (!Eval(operandStack, kOneOrMore)) return;
+          break;
 
-      case '{': {
-        unsigned n, m;
-        if (!ParseUnsigned(ds, &n))
-          return;
+        case '{': {
+          unsigned n, m;
+          if (!ParseUnsigned(ds, &n)) return;
 
-        if (ds.Peek() == ',') {
+          if (ds.Peek() == ',') {
+            ds.Take();
+            if (ds.Peek() == '}')
+              m = kInfinityQuantifier;
+            else if (!ParseUnsigned(ds, &m) || m < n)
+              return;
+          } else
+            m = n;
+
+          if (!EvalQuantifier(operandStack, n, m) || ds.Peek() != '}') return;
           ds.Take();
-          if (ds.Peek() == '}')
-            m = kInfinityQuantifier;
-          else if (!ParseUnsigned(ds, &m) || m < n)
-            return;
-        } else
-          m = n;
+        } break;
 
-        if (!EvalQuantifier(operandStack, n, m) || ds.Peek() != '}')
-          return;
-        ds.Take();
-      } break;
+        case '.':
+          PushOperand(operandStack, kAnyCharacterClass);
+          ImplicitConcatenation(atomCountStack, operatorStack);
+          break;
 
-      case '.':
-        PushOperand(operandStack, kAnyCharacterClass);
-        ImplicitConcatenation(atomCountStack, operatorStack);
-        break;
+        case '[': {
+          SizeType range;
+          if (!ParseRange(ds, &range)) return;
+          SizeType s = NewState(kRegexInvalidState, kRegexInvalidState,
+                                kRangeCharacterClass);
+          GetState(s).rangeStart = range;
+          *operandStack.template Push<Frag>() = Frag(s, s, s);
+        }
+          ImplicitConcatenation(atomCountStack, operatorStack);
+          break;
 
-      case '[': {
-        SizeType range;
-        if (!ParseRange(ds, &range))
-          return;
-        SizeType s = NewState(kRegexInvalidState, kRegexInvalidState,
-                              kRangeCharacterClass);
-        GetState(s).rangeStart = range;
-        *operandStack.template Push<Frag>() = Frag(s, s, s);
-      }
-        ImplicitConcatenation(atomCountStack, operatorStack);
-        break;
+        case '\\':  // Escape character
+          if (!CharacterEscape(ds, &codepoint))
+            return;  // Unsupported escape character
+          // fall through to default
+          RAPIDJSON_DELIBERATE_FALLTHROUGH;
 
-      case '\\': // Escape character
-        if (!CharacterEscape(ds, &codepoint))
-          return; // Unsupported escape character
-        // fall through to default
-        RAPIDJSON_DELIBERATE_FALLTHROUGH;
-
-      default: // Pattern character
-        PushOperand(operandStack, codepoint);
-        ImplicitConcatenation(atomCountStack, operatorStack);
+        default:  // Pattern character
+          PushOperand(operandStack, codepoint);
+          ImplicitConcatenation(atomCountStack, operatorStack);
       }
     }
 
     while (!operatorStack.Empty())
-      if (!Eval(operandStack, *operatorStack.template Pop<Operator>(1)))
-        return;
+      if (!Eval(operandStack, *operatorStack.template Pop<Operator>(1))) return;
 
     // Link the operand to matching state.
     if (operandStack.GetSize() == sizeof(Frag)) {
@@ -340,8 +338,7 @@ private:
 
   SizeType Append(SizeType l1, SizeType l2) {
     SizeType old = l1;
-    while (GetState(l1).out != kRegexInvalidState)
-      l1 = GetState(l1).out;
+    while (GetState(l1).out != kRegexInvalidState) l1 = GetState(l1).out;
     GetState(l1).out = l2;
     return old;
   }
@@ -355,61 +352,61 @@ private:
 
   bool Eval(Stack<Allocator> &operandStack, Operator op) {
     switch (op) {
-    case kConcatenation:
-      RAPIDJSON_ASSERT(operandStack.GetSize() >= sizeof(Frag) * 2);
-      {
-        Frag e2 = *operandStack.template Pop<Frag>(1);
-        Frag e1 = *operandStack.template Pop<Frag>(1);
-        Patch(e1.out, e2.start);
-        *operandStack.template Push<Frag>() =
-            Frag(e1.start, e2.out, Min(e1.minIndex, e2.minIndex));
-      }
-      return true;
-
-    case kAlternation:
-      if (operandStack.GetSize() >= sizeof(Frag) * 2) {
-        Frag e2 = *operandStack.template Pop<Frag>(1);
-        Frag e1 = *operandStack.template Pop<Frag>(1);
-        SizeType s = NewState(e1.start, e2.start, 0);
-        *operandStack.template Push<Frag>() =
-            Frag(s, Append(e1.out, e2.out), Min(e1.minIndex, e2.minIndex));
+      case kConcatenation:
+        RAPIDJSON_ASSERT(operandStack.GetSize() >= sizeof(Frag) * 2);
+        {
+          Frag e2 = *operandStack.template Pop<Frag>(1);
+          Frag e1 = *operandStack.template Pop<Frag>(1);
+          Patch(e1.out, e2.start);
+          *operandStack.template Push<Frag>() =
+              Frag(e1.start, e2.out, Min(e1.minIndex, e2.minIndex));
+        }
         return true;
-      }
-      return false;
 
-    case kZeroOrOne:
-      if (operandStack.GetSize() >= sizeof(Frag)) {
-        Frag e = *operandStack.template Pop<Frag>(1);
-        SizeType s = NewState(kRegexInvalidState, e.start, 0);
-        *operandStack.template Push<Frag>() =
-            Frag(s, Append(e.out, s), e.minIndex);
-        return true;
-      }
-      return false;
+      case kAlternation:
+        if (operandStack.GetSize() >= sizeof(Frag) * 2) {
+          Frag e2 = *operandStack.template Pop<Frag>(1);
+          Frag e1 = *operandStack.template Pop<Frag>(1);
+          SizeType s = NewState(e1.start, e2.start, 0);
+          *operandStack.template Push<Frag>() =
+              Frag(s, Append(e1.out, e2.out), Min(e1.minIndex, e2.minIndex));
+          return true;
+        }
+        return false;
 
-    case kZeroOrMore:
-      if (operandStack.GetSize() >= sizeof(Frag)) {
-        Frag e = *operandStack.template Pop<Frag>(1);
-        SizeType s = NewState(kRegexInvalidState, e.start, 0);
-        Patch(e.out, s);
-        *operandStack.template Push<Frag>() = Frag(s, s, e.minIndex);
-        return true;
-      }
-      return false;
+      case kZeroOrOne:
+        if (operandStack.GetSize() >= sizeof(Frag)) {
+          Frag e = *operandStack.template Pop<Frag>(1);
+          SizeType s = NewState(kRegexInvalidState, e.start, 0);
+          *operandStack.template Push<Frag>() =
+              Frag(s, Append(e.out, s), e.minIndex);
+          return true;
+        }
+        return false;
 
-    case kOneOrMore:
-      if (operandStack.GetSize() >= sizeof(Frag)) {
-        Frag e = *operandStack.template Pop<Frag>(1);
-        SizeType s = NewState(kRegexInvalidState, e.start, 0);
-        Patch(e.out, s);
-        *operandStack.template Push<Frag>() = Frag(e.start, s, e.minIndex);
-        return true;
-      }
-      return false;
+      case kZeroOrMore:
+        if (operandStack.GetSize() >= sizeof(Frag)) {
+          Frag e = *operandStack.template Pop<Frag>(1);
+          SizeType s = NewState(kRegexInvalidState, e.start, 0);
+          Patch(e.out, s);
+          *operandStack.template Push<Frag>() = Frag(s, s, e.minIndex);
+          return true;
+        }
+        return false;
 
-    default:
-      // syntax error (e.g. unclosed kLeftParenthesis)
-      return false;
+      case kOneOrMore:
+        if (operandStack.GetSize() >= sizeof(Frag)) {
+          Frag e = *operandStack.template Pop<Frag>(1);
+          SizeType s = NewState(kRegexInvalidState, e.start, 0);
+          Patch(e.out, s);
+          *operandStack.template Push<Frag>() = Frag(e.start, s, e.minIndex);
+          return true;
+        }
+        return false;
+
+      default:
+        // syntax error (e.g. unclosed kLeftParenthesis)
+        return false;
     }
   }
 
@@ -418,37 +415,37 @@ private:
     RAPIDJSON_ASSERT(operandStack.GetSize() >= sizeof(Frag));
 
     if (n == 0) {
-      if (m == 0) // a{0} not support
+      if (m == 0)  // a{0} not support
         return false;
       else if (m == kInfinityQuantifier)
-        Eval(operandStack, kZeroOrMore); // a{0,} -> a*
+        Eval(operandStack, kZeroOrMore);  // a{0,} -> a*
       else {
-        Eval(operandStack, kZeroOrOne); // a{0,5} -> a?
+        Eval(operandStack, kZeroOrOne);  // a{0,5} -> a?
         for (unsigned i = 0; i < m - 1; i++)
-          CloneTopOperand(operandStack); // a{0,5} -> a? a? a? a? a?
+          CloneTopOperand(operandStack);  // a{0,5} -> a? a? a? a? a?
         for (unsigned i = 0; i < m - 1; i++)
-          Eval(operandStack, kConcatenation); // a{0,5} -> a?a?a?a?a?
+          Eval(operandStack, kConcatenation);  // a{0,5} -> a?a?a?a?a?
       }
       return true;
     }
 
-    for (unsigned i = 0; i < n - 1; i++) // a{3} -> a a a
+    for (unsigned i = 0; i < n - 1; i++)  // a{3} -> a a a
       CloneTopOperand(operandStack);
 
     if (m == kInfinityQuantifier)
-      Eval(operandStack, kOneOrMore); // a{3,} -> a a a+
+      Eval(operandStack, kOneOrMore);  // a{3,} -> a a a+
     else if (m > n) {
-      CloneTopOperand(operandStack);  // a{3,5} -> a a a a
-      Eval(operandStack, kZeroOrOne); // a{3,5} -> a a a a?
+      CloneTopOperand(operandStack);   // a{3,5} -> a a a a
+      Eval(operandStack, kZeroOrOne);  // a{3,5} -> a a a a?
       for (unsigned i = n; i < m - 1; i++)
-        CloneTopOperand(operandStack); // a{3,5} -> a a a a? a?
+        CloneTopOperand(operandStack);  // a{3,5} -> a a a a? a?
       for (unsigned i = n; i < m; i++)
-        Eval(operandStack, kConcatenation); // a{3,5} -> a a aa?a?
+        Eval(operandStack, kConcatenation);  // a{3,5} -> a a aa?a?
     }
 
     for (unsigned i = 0; i < n - 1; i++)
       Eval(operandStack,
-           kConcatenation); // a{3} -> aaa, a{3,} -> aaa+, a{3.5} -> aaaa?a?
+           kConcatenation);  // a{3} -> aaa, a{3,} -> aaa+, a{3.5} -> aaaa?a?
 
     return true;
   }
@@ -458,17 +455,15 @@ private:
   void CloneTopOperand(Stack<Allocator> &operandStack) {
     const Frag src =
         *operandStack
-             .template Top<Frag>(); // Copy constructor to prevent invalidation
+             .template Top<Frag>();  // Copy constructor to prevent invalidation
     SizeType count =
-        stateCount_ - src.minIndex; // Assumes top operand contains states in
-                                    // [src->minIndex, stateCount_)
+        stateCount_ - src.minIndex;  // Assumes top operand contains states in
+                                     // [src->minIndex, stateCount_)
     State *s = states_.template Push<State>(count);
     memcpy(s, &GetState(src.minIndex), count * sizeof(State));
     for (SizeType j = 0; j < count; j++) {
-      if (s[j].out != kRegexInvalidState)
-        s[j].out += count;
-      if (s[j].out1 != kRegexInvalidState)
-        s[j].out1 += count;
+      if (s[j].out != kRegexInvalidState) s[j].out += count;
+      if (s[j].out1 != kRegexInvalidState) s[j].out1 += count;
     }
     *operandStack.template Push<Frag>() =
         Frag(src.start + count, src.out + count, src.minIndex + count);
@@ -478,11 +473,10 @@ private:
   template <typename InputStream>
   bool ParseUnsigned(DecodedStream<InputStream, Encoding> &ds, unsigned *u) {
     unsigned r = 0;
-    if (ds.Peek() < '0' || ds.Peek() > '9')
-      return false;
+    if (ds.Peek() < '0' || ds.Peek() > '9') return false;
     while (ds.Peek() >= '0' && ds.Peek() <= '9') {
-      if (r >= 429496729 && ds.Peek() > '5') // 2^32 - 1 = 4294967295
-        return false;                        // overflow
+      if (r >= 429496729 && ds.Peek() > '5')  // 2^32 - 1 = 4294967295
+        return false;                         // overflow
       r = r * 10 + (ds.Take() - '0');
     }
     *u = r;
@@ -507,54 +501,51 @@ private:
       }
 
       switch (codepoint) {
-      case ']':
-        if (start == kRegexInvalidRange)
-          return false;  // Error: nothing inside []
-        if (step == 2) { // Add trailing '-'
-          SizeType r = NewRange('-');
-          RAPIDJSON_ASSERT(current != kRegexInvalidRange);
-          GetRange(current).next = r;
-        }
-        if (negate)
-          GetRange(start).start |= kRangeNegationFlag;
-        *range = start;
-        return true;
-
-      case '\\':
-        if (ds.Peek() == 'b') {
-          ds.Take();
-          codepoint = 0x0008; // Escape backspace character
-        } else if (!CharacterEscape(ds, &codepoint))
-          return false;
-        // fall through to default
-        RAPIDJSON_DELIBERATE_FALLTHROUGH;
-
-      default:
-        switch (step) {
-        case 1:
-          if (codepoint == '-') {
-            step++;
-            break;
+        case ']':
+          if (start == kRegexInvalidRange)
+            return false;   // Error: nothing inside []
+          if (step == 2) {  // Add trailing '-'
+            SizeType r = NewRange('-');
+            RAPIDJSON_ASSERT(current != kRegexInvalidRange);
+            GetRange(current).next = r;
           }
-          // fall through to step 0 for other characters
+          if (negate) GetRange(start).start |= kRangeNegationFlag;
+          *range = start;
+          return true;
+
+        case '\\':
+          if (ds.Peek() == 'b') {
+            ds.Take();
+            codepoint = 0x0008;  // Escape backspace character
+          } else if (!CharacterEscape(ds, &codepoint))
+            return false;
+          // fall through to default
           RAPIDJSON_DELIBERATE_FALLTHROUGH;
 
-        case 0: {
-          SizeType r = NewRange(codepoint);
-          if (current != kRegexInvalidRange)
-            GetRange(current).next = r;
-          if (start == kRegexInvalidRange)
-            start = r;
-          current = r;
-        }
-          step = 1;
-          break;
-
         default:
-          RAPIDJSON_ASSERT(step == 2);
-          GetRange(current).end = codepoint;
-          step = 0;
-        }
+          switch (step) {
+            case 1:
+              if (codepoint == '-') {
+                step++;
+                break;
+              }
+              // fall through to step 0 for other characters
+              RAPIDJSON_DELIBERATE_FALLTHROUGH;
+
+            case 0: {
+              SizeType r = NewRange(codepoint);
+              if (current != kRegexInvalidRange) GetRange(current).next = r;
+              if (start == kRegexInvalidRange) start = r;
+              current = r;
+            }
+              step = 1;
+              break;
+
+            default:
+              RAPIDJSON_ASSERT(step == 2);
+              GetRange(current).end = codepoint;
+              step = 0;
+          }
       }
     }
     return false;
@@ -572,39 +563,39 @@ private:
                        unsigned *escapedCodepoint) {
     unsigned codepoint;
     switch (codepoint = ds.Take()) {
-    case '^':
-    case '$':
-    case '|':
-    case '(':
-    case ')':
-    case '?':
-    case '*':
-    case '+':
-    case '.':
-    case '[':
-    case ']':
-    case '{':
-    case '}':
-    case '\\':
-      *escapedCodepoint = codepoint;
-      return true;
-    case 'f':
-      *escapedCodepoint = 0x000C;
-      return true;
-    case 'n':
-      *escapedCodepoint = 0x000A;
-      return true;
-    case 'r':
-      *escapedCodepoint = 0x000D;
-      return true;
-    case 't':
-      *escapedCodepoint = 0x0009;
-      return true;
-    case 'v':
-      *escapedCodepoint = 0x000B;
-      return true;
-    default:
-      return false; // Unsupported escape character
+      case '^':
+      case '$':
+      case '|':
+      case '(':
+      case ')':
+      case '?':
+      case '*':
+      case '+':
+      case '.':
+      case '[':
+      case ']':
+      case '{':
+      case '}':
+      case '\\':
+        *escapedCodepoint = codepoint;
+        return true;
+      case 'f':
+        *escapedCodepoint = 0x000C;
+        return true;
+      case 'n':
+        *escapedCodepoint = 0x000A;
+        return true;
+      case 'r':
+        *escapedCodepoint = 0x000D;
+        return true;
+      case 't':
+        *escapedCodepoint = 0x0009;
+        return true;
+      case 'v':
+        *escapedCodepoint = 0x000B;
+        return true;
+      default:
+        return false;  // Unsupported escape character
     }
   }
 
@@ -625,16 +616,19 @@ private:
 
 template <typename RegexType, typename Allocator = CrtAllocator>
 class GenericRegexSearch {
-public:
+ public:
   typedef typename RegexType::EncodingType Encoding;
   typedef typename Encoding::Ch Ch;
 
   GenericRegexSearch(const RegexType &regex, Allocator *allocator = 0)
-      : regex_(regex), allocator_(allocator), ownAllocator_(0),
-        state0_(allocator, 0), state1_(allocator, 0), stateSet_() {
+      : regex_(regex),
+        allocator_(allocator),
+        ownAllocator_(0),
+        state0_(allocator, 0),
+        state1_(allocator, 0),
+        stateSet_() {
     RAPIDJSON_ASSERT(regex_.IsValid());
-    if (!allocator_)
-      ownAllocator_ = allocator_ = RAPIDJSON_NEW(Allocator)();
+    if (!allocator_) ownAllocator_ = allocator_ = RAPIDJSON_NEW(Allocator)();
     stateSet_ = static_cast<unsigned *>(allocator_->Malloc(GetStateSetSize()));
     state0_.template Reserve<SizeType>(regex_.stateCount_);
     state1_.template Reserve<SizeType>(regex_.stateCount_);
@@ -645,7 +639,8 @@ public:
     RAPIDJSON_DELETE(ownAllocator_);
   }
 
-  template <typename InputStream> bool Match(InputStream &is) {
+  template <typename InputStream>
+  bool Match(InputStream &is) {
     return SearchWithAnchoring(is, true, true);
   }
 
@@ -654,7 +649,8 @@ public:
     return Match(is);
   }
 
-  template <typename InputStream> bool Search(InputStream &is) {
+  template <typename InputStream>
+  bool Search(InputStream &is) {
     return SearchWithAnchoring(is, regex_.anchorBegin_, regex_.anchorEnd_);
   }
 
@@ -663,7 +659,7 @@ public:
     return Search(is);
   }
 
-private:
+ private:
   typedef typename RegexType::State State;
   typedef typename RegexType::Range Range;
 
@@ -690,11 +686,9 @@ private:
             (sr.codepoint == RegexType::kRangeCharacterClass &&
              MatchRange(sr.rangeStart, codepoint))) {
           matched = AddState(*next, sr.out) || matched;
-          if (!anchorEnd && matched)
-            return true;
+          if (!anchorEnd && matched) return true;
         }
-        if (!anchorBegin)
-          AddState(*next, regex_.root_);
+        if (!anchorBegin) AddState(*next, regex_.root_);
       }
       internal::Swap(current, next);
     }
@@ -709,7 +703,7 @@ private:
     RAPIDJSON_ASSERT(index != kRegexInvalidState);
 
     const State &s = regex_.GetState(index);
-    if (s.out1 != kRegexInvalidState) { // Split
+    if (s.out1 != kRegexInvalidState) {  // Split
       bool matched = AddState(l, s.out);
       return AddState(l, s.out1) || matched;
     } else if (!(stateSet_[index >> 5] & (1u << (index & 31)))) {
@@ -717,8 +711,8 @@ private:
       *l.template PushUnsafe<SizeType>() = index;
     }
     return s.out ==
-           kRegexInvalidState; // by using PushUnsafe() above, we can ensure s
-                               // is not validated due to reallocation.
+           kRegexInvalidState;  // by using PushUnsafe() above, we can ensure s
+                                // is not validated due to reallocation.
   }
 
   bool MatchRange(SizeType rangeIndex, unsigned codepoint) const {
@@ -745,7 +739,7 @@ private:
 typedef GenericRegex<UTF8<>> Regex;
 typedef GenericRegexSearch<Regex> RegexSearch;
 
-} // namespace internal
+}  // namespace internal
 RAPIDJSON_NAMESPACE_END
 
 #ifdef __GNUC__
@@ -756,4 +750,4 @@ RAPIDJSON_DIAG_POP
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_INTERNAL_REGEX_H_
+#endif  // RAPIDJSON_INTERNAL_REGEX_H_

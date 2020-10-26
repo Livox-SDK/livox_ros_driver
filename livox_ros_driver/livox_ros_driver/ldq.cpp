@@ -31,7 +31,6 @@ namespace livox_ros {
 
 /* for pointcloud queue process */
 int InitQueue(LidarDataQueue *queue, uint32_t queue_size) {
-
   if (queue == nullptr) {
     return 1;
   }
@@ -54,7 +53,6 @@ int InitQueue(LidarDataQueue *queue, uint32_t queue_size) {
 }
 
 int DeInitQueue(LidarDataQueue *queue) {
-
   if (queue == nullptr) {
     return 1;
   }
@@ -76,7 +74,7 @@ void ResetQueue(LidarDataQueue *queue) {
   queue->wr_idx = 0;
 }
 
-void QueueProPop(LidarDataQueue *queue, StoragePacket *storage_packet) {
+void QueuePrePop(LidarDataQueue *queue, StoragePacket *storage_packet) {
   uint32_t rd_idx = queue->rd_idx & queue->mask;
 
   memcpy(storage_packet, &(queue->storage_packet[rd_idx]),
@@ -86,7 +84,7 @@ void QueueProPop(LidarDataQueue *queue, StoragePacket *storage_packet) {
 void QueuePopUpdate(LidarDataQueue *queue) { queue->rd_idx++; }
 
 uint32_t QueuePop(LidarDataQueue *queue, StoragePacket *storage_packet) {
-  QueueProPop(queue, storage_packet);
+  QueuePrePop(queue, storage_packet);
   QueuePopUpdate(queue);
 
   return 1;
@@ -132,4 +130,4 @@ uint32_t QueuePushAny(LidarDataQueue *queue, uint8_t *data, uint32_t length,
   return 1;
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

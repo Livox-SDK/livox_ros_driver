@@ -25,7 +25,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 namespace internal {
 
 class Double {
-public:
+ public:
   Double() {}
   Double(double d) : d_(d) {}
   Double(uint64_t u) : u_(u) {}
@@ -76,7 +76,7 @@ public:
       return order + 1074;
   }
 
-private:
+ private:
   static const int kSignificandSize = 52;
   static const int kExponentBias = 0x3FF;
   static const int kDenormalExponent = 1 - kExponentBias;
@@ -94,7 +94,7 @@ private:
   };
 };
 
-} // namespace internal
+}  // namespace internal
 RAPIDJSON_NAMESPACE_END
 
-#endif // RAPIDJSON_IEEE754_
+#endif  // RAPIDJSON_IEEE754_

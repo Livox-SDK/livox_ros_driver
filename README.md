@@ -2,6 +2,16 @@
 
 livox_ros_driver is a new ROS package, specially used to connect LiDAR products produced by Livox. The driver can be run under ubuntu 14.04/16.04/18.04 operating system with ROS environment (indigo, kinetic, melodic) installed. Tested hardware platforms that can run livox_ros_driver include: Intel x86 cpu platforms, and some ARM64 hardware platforms (such as nvida TX2 / Xavier, etc.).
 
+## 0. Version and Release History
+
+### 0.1 Current Version
+
+[v2.6.0](https://github.com/Livox-SDK/livox_ros_driver/releases)
+
+### 0.2 Release History
+
+[Release History](https://github.com/Livox-SDK/livox_ros_driver/releases)
+
 ## 1. Install dependencies
 
 Before running livox_ros_driver, ROS and Livox-SDK must be installed.
@@ -171,14 +181,12 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 &ensp;&ensp;&ensp;&ensp;The parameter attributes in the above json file are described in the following table :
 
 <center>LiDAR configuration parameter</center>
-
 | Parameter                  | Type    | Description                                                  | Default         |
 | :------------------------- | ------- | ------------------------------------------------------------ | --------------- |
 | broadcast_code             | String  | LiDAR broadcast code, 15 characters, consisting of a 14-character length serial number plus a character-length additional code | 0TFDG3B006H2Z11 |
 | enable_connect             | Boolean | Whether to connect to this LiDAR<br>true -- Connect this LiDAR<br>false --Do not connect this LiDAR | false           |
-| enable_fan                 | Boolean | Whether to automatically control the fan of this LiDAR<br>true -- Automatically control the fan of this LiDAR<br>false -- Does not automatically control the fan of this LiDAR | true            |
 | return_mode                | Int     | return mode<br>0 -- First single return mode<br>1 -- Strongest single return mode<br>2 -- Dual return mode | 0               |
-| coordinate                 | Int     | Coordinate<br>0 -- Cartesian<br>1 -- Spherical             | 0               |
+| coordinate                 | Int     | Coordinate<br>0 -- Cartesian<br>1 -- Spherical               | 0               |
 | imu_rate                   | Int     | Push frequency of IMU sensor data<br>0 -- stop push<br>1 -- 200 Hz<br>Others -- undefined, it will cause unpredictable behavior<br>Currently only Horizon supports this, MID serials do not support it | 0               |
 | extrinsic_parameter_source | Int     | Whether to enable extrinsic parameter automatic compensation<br>0 -- Disable automatic compensation of LiDAR external reference<br>1 -- Automatic compensation of LiDAR external reference | 0               |
 
@@ -198,7 +206,6 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
    "lidar_config": [
       {
          "broadcast_code": "0TFDG3B006H2Z11",
-         "enable_fan": true,
          "return_mode": 0,
          "imu_rate": 1
       }
@@ -209,7 +216,6 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 &ensp;&ensp;&ensp;&ensp;The main difference between the content of Hub json configuration file and the content of the LiDAR json configuration file is that the Hub configuration item "hub_config" is added, and the related configuration content of the Hub is shown in the following table :
 
 <center>HUB configuration parameter</center>
-
 | Parameter      | Type    | Description                                                  | Default         |
 | -------------- | ------- | ------------------------------------------------------------ | --------------- |
 | broadcast_code | String  | HUB broadcast code, 15 characters, consisting of a 14-character length serial number plus a character-length additional code | 13UUG1R00400170 |
@@ -251,7 +257,6 @@ $GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
 livox_ros_driver only supports the timestamp synchronization function when connected to LiDAR. The timestamp related configuration item timesync_config is in the livox_lidar_config.json file. The detailed configuration content is shown in the table below :
 
 <center>Timestamp synchronization function configuration instructions</center>
-
 | Parameter        | Type     | Description                                                  | Default        |
 | ---------------- | -------- | ------------------------------------------------------------ | -------------- |
 | enable_timesync  | Boolean  | Whether to enable the timestamp synchronization <br>true -- Enable timestamp synchronization<br>false -- Disable timestamp synchronization | false          |

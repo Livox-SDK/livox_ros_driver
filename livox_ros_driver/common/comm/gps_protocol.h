@@ -25,8 +25,8 @@
 #ifndef LIVOX_GPS_PROTOCOL_H_
 #define LIVOX_GPS_PROTOCOL_H_
 
-#include "protocol.h"
 #include <stdint.h>
+#include "protocol.h"
 
 namespace livox_ros {
 
@@ -47,7 +47,7 @@ typedef struct {
 uint8_t AscciiToHex(const uint8_t *TwoChar);
 
 class GpsProtocol : public Protocol {
-public:
+ public:
   GpsProtocol();
   ~GpsProtocol() = default;
 
@@ -69,11 +69,11 @@ public:
 
   int32_t CheckPacket(const uint8_t *buf) override;
 
-private:
+ private:
   uint32_t found_length_;
 
   uint8_t CalcGpsPacketChecksum(const uint8_t *buf, uint32_t length);
 };
 
-} // namespace livox_ros
-#endif // LIVOX_GPS_PROTOCOL_H_
+}  // namespace livox_ros
+#endif  // LIVOX_GPS_PROTOCOL_H_

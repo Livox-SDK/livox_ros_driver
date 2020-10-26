@@ -46,7 +46,7 @@ RAPIDJSON_NAMESPACE_BEGIN
    Stream concept
 */
 struct MemoryStream {
-  typedef char Ch; // byte
+  typedef char Ch;  // byte
 
   MemoryStream(const Ch *src, size_t size)
       : src_(src), begin_(src), end_(src + size), size_(size) {}
@@ -69,10 +69,10 @@ struct MemoryStream {
   // For encoding detection only.
   const Ch *Peek4() const { return Tell() + 4 <= size_ ? src_ : 0; }
 
-  const Ch *src_;   //!< Current read position.
-  const Ch *begin_; //!< Original head of the string.
-  const Ch *end_;   //!< End of stream.
-  size_t size_;     //!< Size of the stream.
+  const Ch *src_;    //!< Current read position.
+  const Ch *begin_;  //!< Original head of the string.
+  const Ch *end_;    //!< End of stream.
+  size_t size_;      //!< Size of the stream.
 };
 
 RAPIDJSON_NAMESPACE_END
@@ -81,4 +81,4 @@ RAPIDJSON_NAMESPACE_END
 RAPIDJSON_DIAG_POP
 #endif
 
-#endif // RAPIDJSON_MEMORYBUFFER_H_
+#endif  // RAPIDJSON_MEMORYBUFFER_H_

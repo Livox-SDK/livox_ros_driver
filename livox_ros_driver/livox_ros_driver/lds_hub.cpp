@@ -24,9 +24,9 @@
 
 #include "lds_hub.h"
 
-#include <memory>
 #include <stdio.h>
 #include <string.h>
+#include <memory>
 #include <thread>
 
 #include "rapidjson/document.h"
@@ -35,18 +35,14 @@
 
 namespace livox_ros {
 
-/** Const varible
- * -------------------------------------------------------------------------------
- */
+/** Const varible ------------------------------------------------------------*/
 
 /** For callback use only */
 static LdsHub *g_lds_hub = nullptr;
 
-/** Global function for common use
- * ---------------------------------------------------------------*/
+/** Global function for common use -------------------------------------------*/
 
-/** Lds hub function
- * -----------------------------------------------------------------------------*/
+/** Lds hub function ---------------------------------------------------------*/
 LdsHub::LdsHub(uint32_t interval_ms) : Lds(interval_ms, kSourceRawHub) {
   auto_connect_mode_ = true;
   whitelist_count_ = 0;
@@ -67,7 +63,6 @@ void LdsHub::ResetLdsHub(void) {
 
 int LdsHub::InitLdsHub(std::vector<std::string> &broadcast_code_strs,
                        const char *user_config_path) {
-
   if (is_initialized_) {
     printf("LiDAR data source is already inited!\n");
     return -1;
@@ -104,8 +99,9 @@ int LdsHub::InitLdsHub(std::vector<std::string> &broadcast_code_strs,
     }
   } else {
     EnableAutoConnectMode();
-    printf("No broadcast code was added to whitelist, swith to automatic "
-           "connection mode!\n");
+    printf(
+        "No broadcast code was added to whitelist, swith to automatic "
+        "connection mode!\n");
   }
 
   /** Start livox sdk to receive lidar data */
@@ -126,7 +122,6 @@ int LdsHub::InitLdsHub(std::vector<std::string> &broadcast_code_strs,
 }
 
 int LdsHub::DeInitLdsHub(void) {
-
   if (!is_initialized_) {
     printf("LiDAR data source is not exit");
     return -1;
@@ -149,81 +144,14 @@ void LdsHub::OnHubDataCb(uint8_t hub_handle, LivoxEthPacket *data,
   if (!data || !data_num) {
     return;
   }
+
   /** Caculate which lidar the eth packet data belong to */
   uint8_t handle = HubGetLidarHandle(eth_packet->slot, eth_packet->id);
   if (handle >= kMaxLidarCount) {
     return;
   }
 
-  LidarDevice *p_lidar = &lds_hub->lidars_[handle];
-  LidarPacketStatistic *packet_statistic = &p_lidar->statistic_info;
-  LdsStamp cur_timestamp;
-  memcpy(cur_timestamp.stamp_bytes, eth_packet->timestamp,
-         sizeof(cur_timestamp));
-
-  if (kImu != eth_packet->data_type) {
-    if (p_lidar->raw_data_type != eth_packet->data_type) {
-      p_lidar->raw_data_type = eth_packet->data_type;
-      p_lidar->packet_interval = GetPacketInterval(eth_packet->data_type);
-      p_lidar->packet_interval_max = p_lidar->packet_interval * 1.8f;
-      
-    }
-    
-    if (eth_packet->timestamp_type == kTimestampTypePps) {
-      /** Whether a new sync frame */
-      if ((cur_timestamp.stamp < packet_statistic->last_timestamp) &&
-          (cur_timestamp.stamp < kPacketTimeGap)) {
-        auto cur_time = std::chrono::high_resolution_clock::now();
-        int64_t sync_time = cur_time.time_since_epoch().count();
-        /** used receive time as timebase */
-        packet_statistic->timebase = sync_time;
-      }
-    }
-    packet_statistic->last_timestamp = cur_timestamp.stamp;
-
-    LidarDataQueue *p_queue = &p_lidar->data;
-    if (nullptr == p_queue->storage_packet) {
-      uint32_t queue_size = CalculatePacketQueueSize(lds_hub->buffer_time_ms_,
-                                                     eth_packet->data_type);
-      queue_size = queue_size * 16; /* 16 multiple the min size */
-      InitQueue(p_queue, queue_size);
-      printf("Lidar%02d[%s] queue size : %d %d\n", p_lidar->handle,
-             p_lidar->info.broadcast_code, queue_size, p_queue->size);
-    }
-    if (!QueueIsFull(p_queue)) {
-      QueuePushAny(p_queue, (uint8_t *)eth_packet,
-                   GetEthPacketLen(eth_packet->data_type),
-                   packet_statistic->timebase,
-                   GetPointsPerPacket(eth_packet->data_type));
-    }
-  } else {
-    if (eth_packet->timestamp_type == kTimestampTypePps) {
-      /** Whether a new sync frame */
-      if ((cur_timestamp.stamp < packet_statistic->last_imu_timestamp) &&
-          (cur_timestamp.stamp < kPacketTimeGap)) {
-        auto cur_time = std::chrono::high_resolution_clock::now();
-        int64_t sync_time = cur_time.time_since_epoch().count();
-        /** used receive time as timebase */
-        packet_statistic->imu_timebase = sync_time;
-      }
-    }
-    packet_statistic->last_imu_timestamp = cur_timestamp.stamp;
-
-    LidarDataQueue *p_queue = &p_lidar->imu_data;
-    if (nullptr == p_queue->storage_packet) {
-      uint32_t queue_size = 256;
-      InitQueue(p_queue, queue_size);
-      printf("Lidar%02d[%s] imu queue size : %d %d\n", p_lidar->handle,
-             p_lidar->info.broadcast_code, queue_size, p_queue->size);
-    }
-
-    if (!QueueIsFull(p_queue)) {
-      QueuePushAny(p_queue, (uint8_t *)eth_packet,
-                   GetEthPacketLen(eth_packet->data_type),
-                   packet_statistic->imu_timebase,
-                   GetPointsPerPacket(eth_packet->data_type));
-    }
-  }
+  lds_hub->StorageRawPacket(handle, eth_packet);
 }
 
 void LdsHub::OnDeviceBroadcast(const BroadcastDeviceInfo *info) {
@@ -300,7 +228,8 @@ void LdsHub::OnDeviceChange(const DeviceInfo *info, DeviceEvent type) {
       printf("Hub[%s] connect on\n", p_hub->info.broadcast_code);
     }
   } else if (type == kEventDisconnect) {
-    p_hub->connect_state = kConnectStateOff;
+    g_lds_hub->ResetLds(0);
+    g_lds_hub->ResetLidar(p_hub, 0);
     printf("Hub[%s] disconnect!\n", info->broadcast_code);
   } else if (type == kEventStateChange) {
     p_hub->info = *info;
@@ -526,6 +455,7 @@ void LdsHub::ConfigImuPushFrequency(LdsHub *lds_hub) {
     LidarDevice *p_lidar = &(lds_hub->lidars_[i]);
 
     if ((p_lidar->info.type != kDeviceTypeLidarMid40) &&
+        (p_lidar->info.type != kDeviceTypeLidarMid70) &&
         (p_lidar->connect_state == kConnectStateSampling)) {
       UserRawConfig config;
       if (lds_hub->GetRawConfig(p_lidar->info.broadcast_code, config)) {
@@ -779,4 +709,4 @@ int LdsHub::GetRawConfig(const char *broadcast_code, UserRawConfig &config) {
   return -1;
 }
 
-} // namespace livox_ros
+}  // namespace livox_ros

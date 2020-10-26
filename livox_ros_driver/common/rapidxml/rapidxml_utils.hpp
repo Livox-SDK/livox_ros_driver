@@ -8,18 +8,18 @@
 //! that can be useful in certain simple scenarios. They should probably not be
 //! used if maximizing performance is the main objective.
 
-#include "rapidxml.hpp"
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include "rapidxml.hpp"
 
 namespace rapidxml {
 
 //! Represents data loaded from a file
-template <class Ch = char> class file {
-
-public:
+template <class Ch = char>
+class file {
+ public:
   //! Loads file into the memory. Data will be automatically destroyed by the
   //! destructor. \param filename Filename to load.
   file(const char *filename) {
@@ -27,8 +27,7 @@ public:
 
     // Open stream
     basic_ifstream<Ch> stream(filename, ios::binary);
-    if (!stream)
-      throw runtime_error(string("cannot open file ") + filename);
+    if (!stream) throw runtime_error(string("cannot open file ") + filename);
     stream.unsetf(ios::skipws);
 
     // Determine stream size
@@ -67,13 +66,14 @@ public:
   //! \return Size of file data, in characters.
   std::size_t size() const { return m_data.size(); }
 
-private:
-  std::vector<Ch> m_data; // File data
+ private:
+  std::vector<Ch> m_data;  // File data
 };
 
 //! Counts children of node. Time complexity is O(n).
 //! \return Number of children of node
-template <class Ch> inline std::size_t count_children(xml_node<Ch> *node) {
+template <class Ch>
+inline std::size_t count_children(xml_node<Ch> *node) {
   xml_node<Ch> *child = node->first_node();
   std::size_t count = 0;
   while (child) {
@@ -85,7 +85,8 @@ template <class Ch> inline std::size_t count_children(xml_node<Ch> *node) {
 
 //! Counts attributes of node. Time complexity is O(n).
 //! \return Number of attributes of node
-template <class Ch> inline std::size_t count_attributes(xml_node<Ch> *node) {
+template <class Ch>
+inline std::size_t count_attributes(xml_node<Ch> *node) {
   xml_attribute<Ch> *attr = node->first_attribute();
   std::size_t count = 0;
   while (attr) {
@@ -95,6 +96,6 @@ template <class Ch> inline std::size_t count_attributes(xml_node<Ch> *node) {
   return count;
 }
 
-} // namespace rapidxml
+}  // namespace rapidxml
 
 #endif

@@ -25,10 +25,10 @@
 #ifndef COMM_COMM_PROTOCOL_H_
 #define COMM_COMM_PROTOCOL_H_
 
+#include <stdint.h>
 #include "gps_protocol.h"
 #include "protocol.h"
 #include "sdk_protocol.h"
-#include <stdint.h>
 
 namespace livox_ros {
 const uint32_t kCacheSize = 8192;
@@ -50,7 +50,7 @@ typedef struct {
 } CommCache;
 
 class CommProtocol {
-public:
+ public:
   CommProtocol(ProtocolConfig &config);
   ~CommProtocol();
 
@@ -67,7 +67,7 @@ public:
 
   void ResetParser();
 
-private:
+ private:
   uint32_t GetCacheTailSize();
   uint32_t GetValidDataSize();
   void UpdateCache(void);
@@ -101,5 +101,5 @@ private:
   }
 };
 
-} // namespace livox_ros
-#endif // COMM_COMM_PROTOCOL_H_
+}  // namespace livox_ros
+#endif  // COMM_COMM_PROTOCOL_H_
