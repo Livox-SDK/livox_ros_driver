@@ -98,7 +98,7 @@ void TimeSync::StopTimesync() {
     t_poll_state_ = nullptr;
   }
 
-  if (t_poll_state_) {
+  if (t_poll_data_) {
     t_poll_data_->join();
     t_poll_data_ = nullptr;
   }
