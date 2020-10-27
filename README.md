@@ -180,7 +180,7 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 
 &ensp;&ensp;&ensp;&ensp;The parameter attributes in the above json file are described in the following table :
 
-<center>LiDAR configuration parameter</center>
+LiDAR configuration parameter
 | Parameter                  | Type    | Description                                                  | Default         |
 | :------------------------- | ------- | ------------------------------------------------------------ | --------------- |
 | broadcast_code             | String  | LiDAR broadcast code, 15 characters, consisting of a 14-character length serial number plus a character-length additional code | 0TFDG3B006H2Z11 |
@@ -215,7 +215,7 @@ In the "ws_livox/src/livox_ros_driver/launch" path, there are two json files, li
 
 &ensp;&ensp;&ensp;&ensp;The main difference between the content of Hub json configuration file and the content of the LiDAR json configuration file is that the Hub configuration item "hub_config" is added, and the related configuration content of the Hub is shown in the following table :
 
-<center>HUB configuration parameter</center>
+HUB configuration parameter
 | Parameter      | Type    | Description                                                  | Default         |
 | -------------- | ------- | ------------------------------------------------------------ | --------------- |
 | broadcast_code | String  | HUB broadcast code, 15 characters, consisting of a 14-character length serial number plus a character-length additional code | 13UUG1R00400170 |
@@ -256,7 +256,7 @@ $GPRMC,190430,A,4812.3038,S,07330.7690,W,3.7,3.8,090210,13.7,E,D*26
 
 livox_ros_driver only supports the timestamp synchronization function when connected to LiDAR. The timestamp related configuration item timesync_config is in the livox_lidar_config.json file. The detailed configuration content is shown in the table below :
 
-<center>Timestamp synchronization function configuration instructions</center>
+Timestamp synchronization function configuration instructions
 | Parameter        | Type     | Description                                                  | Default        |
 | ---------------- | -------- | ------------------------------------------------------------ | -------------- |
 | enable_timesync  | Boolean  | Whether to enable the timestamp synchronization <br>true -- Enable timestamp synchronization<br>false -- Disable timestamp synchronization | false          |
