@@ -26,6 +26,7 @@
 
 #include <chrono>
 #include <vector>
+#include <csignal>
 
 #include <ros/ros.h>
 #include "lddc.h"
@@ -38,9 +39,13 @@ using namespace livox_ros;
 
 const int32_t kSdkVersionMajorLimit = 2;
 
-int main(int argc, char **argv) {
-  ROS_INFO("Livox Ros Driver Version: %s", LIVOX_ROS_DRIVER_VERSION_STRING);
+inline void SignalHandler(int signum) {
+  printf("livox ros driver will exit\r\n");
+  ros::shutdown();
+  exit(signum);
+}
 
+int main(int argc, char **argv) {
   /** Ros related */
   if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
                                      ros::console::levels::Debug)) {
@@ -49,6 +54,8 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "livox_lidar_publisher");
   ros::NodeHandle livox_node;
 
+  ROS_INFO("Livox Ros Driver Version: %s", LIVOX_ROS_DRIVER_VERSION_STRING);
+  signal(SIGINT, SignalHandler);
   /** Check sdk version */
   LivoxSdkVersion _sdkversion;
   GetLivoxSdkVersion(&_sdkversion);
