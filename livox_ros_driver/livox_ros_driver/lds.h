@@ -48,7 +48,7 @@ const uint32_t kMaxSourceLidar = 32;
 /** Eth packet relative info parama */
 const uint32_t kMaxPointPerEthPacket = 100;
 const uint32_t kMinEthPacketQueueSize = 32;   /**< must be 2^n */
-const uint32_t kMaxEthPacketQueueSize = 8192; /**< must be 2^n */
+const uint32_t kMaxEthPacketQueueSize = 131072; /**< must be 2^n */
 const uint32_t kImuEthPacketQueueSize = 256;
 
 const uint32_t KEthPacketHeaderLength = 18; /**< (sizeof(LivoxEthPacket) - 1) */
@@ -56,6 +56,7 @@ const uint32_t KEthPacketHeaderLength = 18; /**< (sizeof(LivoxEthPacket) - 1) */
 const uint32_t KCartesianPointSize = 13;
 const uint32_t KSphericalPointSzie = 9;
 
+const uint64_t kRosTimeMax = 4294967296000000000; /**< 2^32 * 1000000000ns */
 const int64_t kPacketTimeGap = 1000000; /**< 1ms = 1000000ns */
 /**< the threshold of packet continuous */
 const int64_t kMaxPacketTimeGap = 1700000;
@@ -262,6 +263,7 @@ const ProductTypePointInfoPair product_type_info_pair_table[kMaxProductType] = {
  * Global function for general use.
  */
 bool IsFilePathValid(const char *path_str);
+uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type);
 uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src);
 uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint8_t product_type,
                                   uint8_t data_type);

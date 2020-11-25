@@ -43,13 +43,15 @@ namespace livox_ros {
 
 /** Lidar Data Distribute Control--------------------------------------------*/
 Lddc::Lddc(int format, int multi_topic, int data_src, int output_type,
-           double frq, std::string &frame_id)
+    double frq, std::string &frame_id, bool lidar_bag, bool imu_bag)
     : transfer_format_(format),
       use_multi_topic_(multi_topic),
       data_src_(data_src),
       output_type_(output_type),
       publish_frq_(frq),
-      frame_id_(frame_id) {
+      frame_id_(frame_id),
+      enable_lidar_bag_(lidar_bag),
+      enable_imu_bag_(imu_bag) {
   publish_period_ns_ = kNsPerSecond / publish_frq_;
   lds_ = nullptr;
   memset(private_pub_, 0, sizeof(private_pub_));
@@ -239,9 +241,9 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
   if (kOutputToRos == output_type_) {
     p_publisher->publish(cloud);
   } else {
-    if (bag_) {
+    if (bag_ && enable_lidar_bag_) {
       bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),
-                  cloud);
+          cloud);
     }
   }
   if (!lidar->data_is_pubulished) {
@@ -340,9 +342,9 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
   if (kOutputToRos == output_type_) {
     p_publisher->publish(cloud);
   } else {
-    if (bag_) {
+    if (bag_ && enable_lidar_bag_) {
       bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),
-                  cloud);
+          cloud);
     }
   }
   if (!lidar->data_is_pubulished) {
@@ -464,7 +466,7 @@ uint32_t Lddc::PublishCustomPointcloud(LidarDataQueue *queue,
   if (kOutputToRos == output_type_) {
     p_publisher->publish(livox_msg);
   } else {
-    if (bag_) {
+    if (bag_ && enable_lidar_bag_) {
       bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),
           livox_msg);
     }
@@ -513,9 +515,9 @@ uint32_t Lddc::PublishImuData(LidarDataQueue *queue, uint32_t packet_num,
   if (kOutputToRos == output_type_) {
     p_publisher->publish(imu_data);
   } else {
-    if (bag_) {
+    if (bag_ && enable_imu_bag_) {
       bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),
-                  imu_data);
+          imu_data);
     }
   }
   return published_packet;
@@ -592,9 +594,10 @@ ros::Publisher *Lddc::GetCurrentPublisher(uint8_t handle) {
 
   if (use_multi_topic_) {
     pub = &private_pub_[handle];
+    queue_size = queue_size / 8; // queue size is 4 for only one lidar
   } else {
     pub = &global_pub_;
-    queue_size = queue_size * 8;
+    queue_size = queue_size * 8; // shared queue size is 256, for all lidars
   }
 
   if (*pub == nullptr) {
@@ -640,9 +643,10 @@ ros::Publisher *Lddc::GetCurrentImuPublisher(uint8_t handle) {
 
   if (use_multi_topic_) {
     pub = &private_imu_pub_[handle];
+    queue_size = queue_size / 8; // queue size is 4 for only one lidar
   } else {
     pub = &global_imu_pub_;
-    queue_size = queue_size * 4;
+    queue_size = queue_size * 8; // shared queue size is 256, for all lidars
   }
 
   if (*pub == nullptr) {

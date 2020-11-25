@@ -120,11 +120,6 @@ int LdsLvx::InitLdsLvx(const char *lvx_path) {
     p_extrinsic->trans[2] = lvx_dev_info.z;
     EulerAnglesToRotationMatrix(p_extrinsic->euler, p_extrinsic->rotation);
     p_extrinsic->enable = lvx_dev_info.extrinsic_enable;
-
-    uint32_t queue_size = kMaxEthPacketQueueSize * 16;
-    InitQueue(&lidars_[handle].data, queue_size);
-    queue_size = kMaxEthPacketQueueSize;
-    InitQueue(&lidars_[handle].imu_data, queue_size);
   }
 
   t_read_lvx_ =
@@ -166,6 +161,19 @@ void LdsLvx::ReadLvxFile() {
         }
 
         data_type = eth_packet->data_type;
+        if (handle >= lvx_file_->GetDeviceCount()) {
+          printf("Raw data handle error, error handle is %d\n", handle);
+          break;
+        }
+        if (data_type >= kMaxPointDataType) {
+          printf("Raw data type error, error data_type is %d\n", data_type);
+          break;
+        }
+        if (eth_packet->version != 5) {
+          printf("EthPacket version[%d] not supported\n", eth_packet->version);
+          break;
+        }
+        
         /** Packet length + device index */
         data_offset += (GetEthPacketLen(data_type) + 1);
         StorageRawPacket(handle, eth_packet);
