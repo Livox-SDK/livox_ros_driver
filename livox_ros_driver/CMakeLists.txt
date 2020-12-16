@@ -212,12 +212,12 @@ install(TARGETS ${PROJECT_NAME}_node
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 	)
 
-install(DIRECTORY launch/
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+install(DIRECTORY
+  launch
+  config
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 	)
 
 #---------------------------------------------------------------------------------------
 # end of CMakeList.txt
 #---------------------------------------------------------------------------------------
-
-
