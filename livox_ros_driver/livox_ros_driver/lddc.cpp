@@ -594,7 +594,7 @@ ros::Publisher *Lddc::GetCurrentPublisher(uint8_t handle) {
 
   if (use_multi_topic_) {
     pub = &private_pub_[handle];
-    queue_size = queue_size / 8; // queue size is 4 for only one lidar
+    queue_size = queue_size * 2; // queue size is 64 for only one lidar
   } else {
     pub = &global_pub_;
     queue_size = queue_size * 8; // shared queue size is 256, for all lidars
@@ -643,7 +643,7 @@ ros::Publisher *Lddc::GetCurrentImuPublisher(uint8_t handle) {
 
   if (use_multi_topic_) {
     pub = &private_imu_pub_[handle];
-    queue_size = queue_size / 8; // queue size is 4 for only one lidar
+    queue_size = queue_size * 2; // queue size is 64 for only one lidar
   } else {
     pub = &global_imu_pub_;
     queue_size = queue_size * 8; // shared queue size is 256, for all lidars
