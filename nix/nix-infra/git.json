@@ -1,0 +1,8 @@
+{
+  "url": "ssh://git@github.com/Airtonomy/nix-infra.git",
+  "rev": "cc6f3492413a1cdb11177efcac16a6a63de6e296",
+  "sha256": "0kws0fsfhrrff50a2604kk85nmaxcrkafc2z54igjla4fvrgy6bx",
+  "private": true,
+  "fetchSubmodules": false,
+  "branch": "main"
+}
