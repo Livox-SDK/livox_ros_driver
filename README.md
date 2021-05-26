@@ -283,5 +283,5 @@ After replacing "/home/livox/test.lvx" in the above command with the local lvx d
 
 You can get support from Livox with the following methods :
 
-* Send email to dev@livoxtech.com with a clear description of your problem and your setup
+* Send email to cs@livoxtech.com with a clear description of your problem and your setup
 * Report issue on github
