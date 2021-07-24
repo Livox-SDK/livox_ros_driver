@@ -43,6 +43,30 @@ bool IsFilePathValid(const char *path_str) {
   }
 }
 
+/** Replace nonstardard function "timegm" with mktime.
+ *  For a portable version of timegm, set the TZ environment variable to UTC,
+ *  call mktime and restore the value of TZ.
+ *  "localtime" and "timegm" are nonstandard GNU extensions that are also present
+ *  on the BSDs. Avoid their use!!!
+ */
+time_t replace_timegm(struct tm *tm) {
+  time_t ret;
+  char *tz;
+
+  tz = getenv("TZ");
+  setenv("TZ", "", 1);
+  tzset();
+  ret = mktime(tm);
+
+  if (tz)
+    setenv("TZ", tz, 1);
+  else
+    unsetenv("TZ");
+  tzset();
+
+  return ret;
+}
+
 uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type) {
   if (timestamp_type == kTimestampTypePps) {
     return timestamp.stamp;
@@ -618,18 +642,20 @@ uint8_t Lds::GetDeviceType(uint8_t handle) {
   }
 }
 
-void Lds::UpdateLidarInfoByEthPacket(LidarDevice *p_lidar, \
+void Lds::UpdateLidarInfoByEthPacket(LidarDevice *p_lidar,
     LivoxEthPacket* eth_packet) {
   if (p_lidar->raw_data_type != eth_packet->data_type) {
     p_lidar->raw_data_type = eth_packet->data_type;
-    p_lidar->packet_interval = GetPacketInterval(p_lidar->info.type, \
+    p_lidar->packet_interval = GetPacketInterval(p_lidar->info.type,
         eth_packet->data_type);
+    p_lidar->timestamp_type = eth_packet->timestamp_type;
     p_lidar->packet_interval_max = p_lidar->packet_interval * 1.8f;
-    p_lidar->onetime_publish_packets = \
-        GetPacketNumPerSec(p_lidar->info.type, \
+    p_lidar->onetime_publish_packets =
+        GetPacketNumPerSec(p_lidar->info.type,
         p_lidar->raw_data_type) * buffer_time_ms_ / 1000;
-    printf("Lidar[%d][%s] DataType[%d] PacketInterval[%d] PublishPackets[%d]\n",
-        p_lidar->handle, p_lidar->info.broadcast_code, p_lidar->raw_data_type,
+    printf("Lidar[%d][%s] DataType[%d] timestamp_type[%d] PacketInterval[%d] "
+        "PublishPackets[%d]\n", p_lidar->handle, p_lidar->info.broadcast_code,
+        p_lidar->raw_data_type, p_lidar->timestamp_type,
         p_lidar->packet_interval, p_lidar->onetime_publish_packets);
   }
 }

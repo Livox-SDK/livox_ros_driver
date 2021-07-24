@@ -172,9 +172,10 @@ typedef struct {
 typedef struct {
   uint8_t handle;                    /**< Lidar access handle. */
   uint8_t data_src;                  /**< From raw lidar or livox file. */
-  uint8_t raw_data_type;             /**< The data type in eth packaet */
+  uint8_t raw_data_type;             /**< The data type in eth packaet. */
   bool data_is_pubulished;           /**< Indicate the data of lidar whether is
                                           pubulished. */
+  uint32_t timestamp_type;           /**< timestamp type of the current eth packet. */
   volatile uint32_t packet_interval; /**< The time interval between packets
                                         of current lidar, unit:ns */
   volatile uint32_t packet_interval_max; /**< If more than it,
@@ -263,6 +264,7 @@ const ProductTypePointInfoPair product_type_info_pair_table[kMaxProductType] = {
  * Global function for general use.
  */
 bool IsFilePathValid(const char *path_str);
+time_t replace_timegm(struct tm *tm);
 uint64_t RawLdsStampToNs(LdsStamp &timestamp, uint8_t timestamp_type);
 uint64_t GetStoragePacketTimestamp(StoragePacket *packet, uint8_t data_src);
 uint32_t CalculatePacketQueueSize(uint32_t interval_ms, uint8_t product_type,
