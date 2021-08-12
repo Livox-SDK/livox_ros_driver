@@ -61,6 +61,7 @@ class Lddc {
 
   void SetRosPub(ros::Publisher *pub) { global_pub_ = pub; };
   void SetPublishFrq(uint32_t frq) { publish_frq_ = frq; }
+  const float gravity = 9.8; // m/s^2
 
   Lds *lds_;
 
