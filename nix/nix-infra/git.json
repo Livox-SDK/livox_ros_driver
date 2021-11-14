@@ -1,8 +1,8 @@
 {
   "url": "ssh://git@github.com/Airtonomy/nix-infra.git",
-  "rev": "481e37a623af3ff2fea1231d9fd9f02a91801c8a",
-  "sha256": "00bydzz53fyf01h6xvlsvpff7sw2a5vwxx3hjih0bkdhaqphqxd8",
+  "rev": "c9a4f0494966ab3ef49022db77b56d60ff250ab5",
+  "sha256": "0n8pwkganjghlhpkkjv4wnavq1wd73sbc6nay5sbabiwc91k9k8x",
   "private": true,
   "fetchSubmodules": false,
-  "branch": "main"
+  "branch": "rbt/livox_with_latest_nix_infra"
 }
