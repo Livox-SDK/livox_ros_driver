@@ -340,15 +340,18 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
     last_timestamp = timestamp;
   }
 
+  pcl::PCLPointCloud2 cloudNew;
+  pcl::toPCLPointCloud2(*cloud, cloudNew);
   ros::Publisher *p_publisher = Lddc::GetCurrentPublisher(handle);
   if (kOutputToRos == output_type_) {
-    p_publisher->publish(cloud);
+    p_publisher->publish(cloudNew);
   } else {
     if (bag_ && enable_lidar_bag_) {
-      //bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),cloud);
-      bag_->write(p_publisher->getTopic(), ros::Time::now(), cloud);
+      // bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),cloud);
+      bag_->write(p_publisher->getTopic(), ros::Time::now(), cloudNew);
     }
   }
+
   if (!lidar->data_is_pubulished) {
     lidar->data_is_pubulished = true;
   }
