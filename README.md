@@ -133,7 +133,7 @@ uint8 line              # laser number in lidar
 
 ```c
 Header header             # ROS standard message header
-uint64 timebase           # The time of first point
+uint64 timebase           # The time of first point [nanoseconds]
 uint32 point_num          # Total number of pointclouds
 uint8  lidar_id           # Lidar device id number
 uint8[3]  rsvd            # Reserved use
@@ -143,7 +143,7 @@ CustomPoint[] points      # Pointcloud data
 &ensp;&ensp;&ensp;&ensp;Customized Point Cloud (CustomPoint) format in the above customized data package :
 
 ```c
-uint32 offset_time      # offset time relative to the base time
+uint32 offset_time      # offset time relative to the base time, unit: ns
 float32 x               # X axis, unit:m
 float32 y               # Y axis, unit:m
 float32 z               # Z axis, unit:m
