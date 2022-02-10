@@ -56,12 +56,15 @@
   <build_depend>message_generation</build_depend>
   <build_depend>rosbag</build_depend>
   <build_depend>pcl_ros</build_depend>
+  <build_depend>nodelet</build_depend>
+
 
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>rosbag</build_export_depend>
   <build_export_depend>pcl_ros</build_export_depend>
+    <build_export_depend>nodelet</build_export_depend>
 
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
@@ -69,6 +72,7 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rosbag</exec_depend>
   <exec_depend>pcl_ros</exec_depend>
+  <exec_depend>nodelet</exec_depend>
 
   <depend>sensor_msgs</depend>
   <depend>git</depend>
@@ -76,7 +80,7 @@
   
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <!-- Other tools can request additional information be placed here -->
-
+    <nodelet plugin="${prefix}/livox_nodelet.xml"/>
   </export>
+
 </package>
