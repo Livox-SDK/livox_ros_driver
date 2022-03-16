@@ -34,7 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
 	)
 
 ## Find pcl lib
-find_package(PCL REQUIRED)
+find_package(PCL 1.10.1 REQUIRED)
 
 ## Generate messages in the 'msg' folder
 add_message_files(FILES
