@@ -1,0 +1,7 @@
+<library path="lib/liblivox_ros_driver_nodelet">
+  <class name="livox_ros/publisher" type="livox_ros::nodelet_pub" base_class_type="nodelet::Nodelet">
+    <description> 
+      Nodelet usage example
+    </description>
+  </class>
+</library>
