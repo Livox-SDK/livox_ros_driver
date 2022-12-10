@@ -1,0 +1,74 @@
+version: 2.1
+orbs:
+  docker: circleci/docker@2.1.4
+  cloudsmith: cloudsmith/cloudsmith@1.0.5
+jobs:
+  package:
+    machine:
+      image: ubuntu-2004:202101-01
+      docker_layer_caching: true
+    resource_class: arm.medium
+      # arm64 not supported.  Must use machine image with docker cli https://circleci.com/docs/using-arm/#limitations
+    parameters:
+      source-path:
+        type: string
+        default: livox_ros_driver
+      docker-build-image:
+        type: string
+        default: airtonomy.azurecr.io/flight-controller/flight-controller-base:dev
+      package-repo-org:
+        type: string
+        default: thread-one
+      package-repo:
+        type: string
+        default: dev
+      package-format: 
+        type: string
+        default: deb
+      package-distribution:
+        type: string
+        default: ubuntu/focal
+      package-path:
+        type: string
+        default: debian/*.deb
+    steps:
+      - checkout
+      - docker/check:
+          registry: airtonomy.azurecr.io
+          docker-username: AZURE_FLIGHT_BASE_USERNAME
+          docker-password: AZURE_FLIGHT_BASE_PASSWORD
+      - cloudsmith/ensure-api-key
+      - docker/pull:
+          images: << parameters.docker-build-image >>
+      - run:
+          name: Build Debian Package
+          command: |
+            # calling make debian within the docker to build the package for deployment
+            VERSION=$(git describe --tags)
+            docker run -v `pwd`:/home/ros/workspace -w /home/ros/workspace  -u ros << parameters.docker-build-image >> /bin/bash -c "edge make debian --version=$VERSION --build=${CIRCLE_BUILD_NUM} --path='<< parameters.source-path >>'"
+      - cloudsmith/install-cli
+      - cloudsmith/publish:
+          cloudsmith-repository:  << parameters.package-repo-org >>/<< parameters.package-repo >>
+          package-format: << parameters.package-format >>
+          package-distribution: << parameters.package-distribution >>
+          package-path: << parameters.source-path >>/<< parameters.package-path >>
+  
+workflows:
+  development:
+    jobs:
+      - package:
+          context:
+            - azure-docker-registry-creds
+            - cloudsmith-creds     
+  release:
+    jobs:
+      - package:
+          filters:  
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+          package-repo: "release"
+          context:
+            - azure-docker-registry-creds
+            - cloudsmith-creds 
