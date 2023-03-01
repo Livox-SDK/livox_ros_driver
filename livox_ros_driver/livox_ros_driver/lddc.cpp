@@ -340,11 +340,11 @@ uint32_t Lddc::PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
 
   ros::Publisher *p_publisher = Lddc::GetCurrentPublisher(handle);
   if (kOutputToRos == output_type_) {
-    p_publisher->publish(cloud);
+    p_publisher->publish(*cloud);
   } else {
     if (bag_ && enable_lidar_bag_) {
       bag_->write(p_publisher->getTopic(), ros::Time(timestamp / 1000000000.0),
-          cloud);
+          *cloud);
     }
   }
   if (!lidar->data_is_pubulished) {
