@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     ros::console::notifyLoggerLevelsChanged();
   }
   ros::init(argc, argv, "livox_lidar_publisher");
-  ros::NodeHandle livox_node;
+  ros::NodeHandle livox_node("~");
 
   ROS_INFO("Livox Ros Driver Version: %s", LIVOX_ROS_DRIVER_VERSION_STRING);
   signal(SIGINT, SignalHandler);
