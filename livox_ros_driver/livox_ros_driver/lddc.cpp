@@ -166,6 +166,7 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
   uint64_t timestamp = 0;
   uint64_t last_timestamp = 0;
   uint32_t published_packet = 0;
+  ros::Time first_timestamp;
 
   StoragePacket storage_packet;
   LidarDevice *lidar = &lds_->lidars_[handle];
@@ -202,8 +203,13 @@ uint32_t Lddc::PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
       }
     }
     /** Use the first packet timestamp as pointcloud2 msg timestamp */
-    if (!published_packet) {
-      cloud.header.stamp = ros::Time(timestamp / 1000000000.0);
+    if (published_packet) {
+      first_timestamp = ros::Time::now();
+      cloud.header.stamp = first_timestamp;
+    }
+    else
+    {
+      cloud.header.stamp.fromNSec(first_timestamp.toNSec() + timestamp);
     }
     uint32_t single_point_num = storage_packet.point_num * echo_num;
 
