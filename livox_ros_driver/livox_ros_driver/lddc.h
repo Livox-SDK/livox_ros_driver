@@ -33,15 +33,31 @@
 #include <livox_ros_driver/CustomMsg.h>
 #include <livox_ros_driver/CustomPoint.h>
 
+#include <iostream>
+struct PointXYZIRT
+{
+    PCL_ADD_POINT4D
+    PCL_ADD_INTENSITY;
+    std::uint16_t ring;
+    float time;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+} EIGEN_ALIGN16;
+POINT_CLOUD_REGISTER_POINT_STRUCT (PointXYZIRT,
+    (float, x, x) (float, y, y) (float, z, z) (float, intensity, intensity)
+    (std::uint16_t, ring, ring) (float, time, time)
+)
+
 namespace livox_ros {
 
-typedef pcl::PointCloud<pcl::PointXYZI> PointCloud;
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloudXYZI;
+typedef pcl::PointCloud<PointXYZIRT> PointCloudXYZIRT;
 
 /** Lidar data distribute control */
 typedef enum {
-  kPointCloud2Msg = 0,
+  kPointCloud2XYZITLMsg = 0,
   kLivoxCustomMsg = 1,
-  kPclPxyziMsg
+  kPointCloud2XYZIMsg = 2,
+  kPointCloud2XYZIRTMsg = 3
 } TransferType;
 
 class Lddc {
@@ -68,8 +84,10 @@ class Lddc {
   int32_t GetPublishStartTime(LidarDevice *lidar, LidarDataQueue *queue,
                               uint64_t *start_time,
                               StoragePacket *storage_packet);
-  uint32_t PublishPointcloud2(LidarDataQueue *queue, uint32_t packet_num,
-                              uint8_t handle);
+  uint32_t PublishPointcloud2XYZITL(LidarDataQueue *queue, uint32_t packet_num,
+                                    uint8_t handle);
+  uint32_t PublishPointcloud2XYZIRT(LidarDataQueue *queue, uint32_t packet_num,
+                                    uint8_t handle);
   uint32_t PublishPointcloudData(LidarDataQueue *queue, uint32_t packet_num,
                                  uint8_t handle);
   uint32_t PublishCustomPointcloud(LidarDataQueue *queue, uint32_t packet_num,
@@ -81,8 +99,11 @@ class Lddc {
   ros::Publisher *GetCurrentImuPublisher(uint8_t handle);
   void PollingLidarPointCloudData(uint8_t handle, LidarDevice *lidar);
   void PollingLidarImuData(uint8_t handle, LidarDevice *lidar);
-  void InitPointcloud2MsgHeader(sensor_msgs::PointCloud2& cloud);
-  void FillPointsToPclMsg(PointCloud::Ptr& pcl_msg, \
+  void InitPointcloud2XYZITLMsgHeader(sensor_msgs::PointCloud2& cloud);
+  void FillPointsToPointCloudXYZIRT(PointCloudXYZIRT::Ptr& pcl_msg, \
+      LivoxPointXyzrtl* src_point, uint32_t num, uint32_t offset_time, \
+      uint32_t point_interval, uint32_t echo_num);
+  void FillPointsToPointCloudXYZI(PointCloudXYZI::Ptr& pcl_msg, \
       LivoxPointXyzrtl* src_point, uint32_t num);
   void FillPointsToCustomMsg(livox_ros_driver::CustomMsg& livox_msg, \
       LivoxPointXyzrtl* src_point, uint32_t num, uint32_t offset_time, \

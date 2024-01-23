@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   }
 
   /** Init default system parameter */
-  int xfer_format = kPointCloud2Msg;
+  int xfer_format = kPointCloud2XYZITLMsg;
   int multi_topic = 0;
   int data_src = kSourceRawLidar;
   double publish_freq  = 10.0; /* Hz */
